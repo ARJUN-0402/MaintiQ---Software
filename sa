@@ -1,0 +1,31 @@
+CHANGELOG.md:44: new blank line at EOF.
+IMPLEMENTATION_STATUS.md:3: trailing whitespace.
+[32m+[m[32m**Project root:** `C:\ARRU CODES\projects\MaintiQ`[m[41m  [m
+IMPLEMENTATION_STATUS.md:4: trailing whitespace.
+[32m+[m[32m**Python:** 3.13.14 (master prompt targets 3.11; 3.11 not available via `py` launcher, using 3.13)[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:3: trailing whitespace.
+[32m+[m[32m**Project:** MaintiQ[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:4: trailing whitespace.
+[32m+[m[32m**Project title:** Industrial Failure Prediction with Explainable Artificial Intelligence[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:5: trailing whitespace.
+[32m+[m[32m**Target:** Native Windows desktop application with an offline-capable `.exe` and installer[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:6: trailing whitespace.
+[32m+[m[32m**Academic basis:** The uploaded Uttaranchal University BCA project synopsis for MaintiQ[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:30: trailing whitespace.
+[32m+[m[32m**Name:** MaintiQ[m[41m  [m
+MAINTIQ_KILOCODE_MASTER_EXECUTION_PROMPTS.md:31: trailing whitespace.
+[32m+[m[32m**Full title:** Industrial Failure Prediction with Explainable Artificial Intelligence[m[41m  [m
+docs/QA_CHECKLIST.md:3: trailing whitespace.
+[32m+[m[32m**Version:** 0.1.0[m[41m  [m
+docs/QA_CHECKLIST.md:4: trailing whitespace.
+[32m+[m[32m**Environment:** Windows, PowerShell 5.1, Python 3.13.14 (`.venv`), scikit-learn 1.9.1, PySide6 6.12.0[m[41m  [m
+docs/QA_CHECKLIST.md:5: trailing whitespace.
+[32m+[m[32m**Date:** 2026-11-14[m[41m  [m
+docs/RELEASE_NOTES.md:3: trailing whitespace.
+[32m+[m[32m**Release date:** 2026-11-14[m[41m  [m
+docs/RELEASE_NOTES.md:4: trailing whitespace.
+[32m+[m[32m**Application:** MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence[m[41m  [m
+docs/RELEASE_NOTES.md:5: trailing whitespace.
+[32m+[m[32m**Academic basis:** Uttaranchal University BCA project synopsis (AI4I 2020 Predictive Maintenance Dataset)[m[41m  [m
+docs/SCREENSHOT_CHECKLIST.md:3: trailing whitespace.
+[32m+[m[32m**Application:** MaintiQ v0.1.0[m[41m  [m
