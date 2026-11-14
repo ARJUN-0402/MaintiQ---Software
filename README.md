@@ -10,7 +10,6 @@ A desktop decision-support prototype for binary machine-failure prediction using
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.0%2B-blue.svg)](https://xgboost.ai/)
 [![SHAP](https://img.shields.io/badge/SHAP-0.44%2B-blue.svg)](https://shap.readthedocs.io/)
 [![LIME](https://img.shields.io/badge/LIME-0.2%2B-blue.svg)](https://github.com/marcotcr/lime)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue.svg)](https://www.microsoft.com/windows)
 [![Ruff](https://img.shields.io/badge/lint-ruff-ff6f00.svg)](https://docs.astral.sh/ruff/)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-yellow.svg)](https://github.com/ARJUN-0402/MaintiQ---Software)
@@ -68,7 +67,7 @@ A data-driven approach uses operational telemetry (temperature, speed, torque, t
 
 ## Project Objectives
 
-The implemented objectives, mapped to the repository phases, are:
+The implemented objectives are:
 
 1. **Dataset inspection and validation** — load and validate an AI4I-style CSV against a formal schema; reject missing required columns, invalid target values, unexpected categories, and out-of-domain numerics.
 2. **Data preprocessing** — leakage-safe imputation, categorical encoding, and scaling fitted on the training partition only; stratified train/test split.
@@ -409,24 +408,28 @@ Tests cover configuration, paths, logging, imports, data loading/validation/prof
 
 ```
 MaintiQ/
-├── assets/                 # Static assets (icons, sample datasets)
-├── docs/                   # Documentation and screenshots
-│   ├── screenshots/        # Application screenshots (6 PNG files)
+├── assets/
+│   ├── datasets/          # Sample dataset location (empty; user imports AI4I CSV)
+│   └── icons/
+│       └── app.ico        # Application icon
+├── config/                # Configuration directory (placeholder)
+├── docs/                  # Documentation and screenshots
+│   ├── screenshots/       # Application screenshots (6 PNG files)
 │   ├── ARCHITECTURE.md
 │   ├── DATA_DICTIONARY.md
 │   ├── DEVELOPER_GUIDE.md
 │   ├── FEATURE_ENGINEERING.md
 │   ├── MODEL_CARD.md
-│   ├── PHASE_4_AUDIT.md
-│   ├── PHASE_5_EVALUATION.md
 │   ├── QA_CHECKLIST.md
 │   ├── RELEASE_NOTES.md
 │   ├── SCREENSHOT_CHECKLIST.md
 │   ├── USER_GUIDE.md
 │   └── WINDOWS_COMPATIBILITY.md
-├── packaging/              # PyInstaller spec and Inno Setup installer script
-│   └── maintiq-installer.iss
-├── scripts/                # Windows build script (build_windows.ps1)
+├── packaging/
+│   ├── maintiq-installer.iss   # Inno Setup installer script
+│   └── maintiq.spec            # PyInstaller specification
+├── scripts/
+│   └── build_windows.ps1       # Windows build script
 ├── src/
 │   └── maintiq/            # Python package
 │       ├── __init__.py
@@ -510,6 +513,6 @@ No university approvals, awards, certifications, or guide endorsements are claim
 
 ## Licence and Credits
 
-MaintiQ is released under the MIT License. See `LICENSE` if present in the repository; if no licence file exists, no open-source licence has yet been specified.
+No `LICENSE` file exists in the repository. Although `pyproject.toml` declares the MIT licence, no open-source licence has been formally specified in the repository. Users should treat the project as all rights reserved until a licence file is added.
 
 Third-party datasets and dependencies remain the property of their respective authors and are governed by their own licences. MaintiQ does not claim ownership of the AI4I 2020 dataset, scikit-learn, XGBoost, SHAP, LIME, PySide6, Matplotlib, joblib, pytest, Ruff, PyInstaller, or Inno Setup.
