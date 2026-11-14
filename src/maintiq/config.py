@@ -19,7 +19,7 @@ from pathlib import Path
 import sys
 
 APP_TITLE = "MaintiQ"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 RANDOM_SEED = 42
 DEFAULT_THRESHOLD = 0.5
 

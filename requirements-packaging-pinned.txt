@@ -1,0 +1,7 @@
+# MaintiQ packaging dependencies (pinned).
+# PyInstaller for building the Windows executable; Inno Setup script is
+# compiled separately with iscc (not a Python package).
+#
+# Install with: .venv-build\Scripts\python.exe -m pip install -r requirements-packaging-pinned.txt
+
+pyinstaller==6.22.3

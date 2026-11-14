@@ -1,0 +1,57 @@
+{
+  "available": true,
+  "contributions": [
+    {
+      "abs_contribution": 0.031284847520157644,
+      "contribution": 0.031284847520157644,
+      "feature": "num__air_temperature_k",
+      "label": "Air temperature [K]"
+    },
+    {
+      "abs_contribution": 0.02720359104933079,
+      "contribution": 0.02720359104933079,
+      "feature": "num__torque_nm",
+      "label": "Torque [Nm]"
+    },
+    {
+      "abs_contribution": 0.023320217225471885,
+      "contribution": -0.023320217225471885,
+      "feature": "num__rotational_speed_rpm",
+      "label": "Rotational speed [rpm]"
+    },
+    {
+      "abs_contribution": 0.013863286015203813,
+      "contribution": 0.013863286015203813,
+      "feature": "num__tool_wear_min",
+      "label": "Tool wear [min]"
+    },
+    {
+      "abs_contribution": 0.005490824474856072,
+      "contribution": -0.005490824474856072,
+      "feature": "num__process_temperature_k",
+      "label": "Process temperature [K]"
+    },
+    {
+      "abs_contribution": 0.0021293851117576566,
+      "contribution": 0.0021293851117576566,
+      "feature": "cat__type__H",
+      "label": "Machine type: H"
+    },
+    {
+      "abs_contribution": 0.0014442451002081738,
+      "contribution": -0.0014442451002081738,
+      "feature": "cat__type__M",
+      "label": "Machine type: M"
+    },
+    {
+      "abs_contribution": 0.0006370280524177179,
+      "contribution": 0.0006370280524177179,
+      "feature": "cat__type__L",
+      "label": "Machine type: L"
+    }
+  ],
+  "error": null,
+  "method": "lime",
+  "predicted_class": 0,
+  "score": 2.171426785935182e-05
+}

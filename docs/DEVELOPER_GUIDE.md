@@ -1,6 +1,6 @@
 # MaintiQ Developer Guide
 
-**MaintiQ v0.1.0** — Industrial Failure Prediction with Explainable Artificial Intelligence
+**MaintiQ v0.2.0** — Industrial Failure Prediction with Explainable Artificial Intelligence
 
 > **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
 > dataset. Predictions and explanations are model outputs, not certified industrial
@@ -169,7 +169,7 @@ not require them.
 
 ## 8. Version and release
 
-- Package version: `0.1.0` (`pyproject.toml`, `src/maintiq/__init__.py`).
+- Package version: `0.2.0` (`pyproject.toml`, `src/maintiq/__init__.py`).
 - Release notes: `docs/RELEASE_NOTES.md`.
 - QA checklist: `docs/QA_CHECKLIST.md`.
 - Phase tracker: `IMPLEMENTATION_STATUS.md`.

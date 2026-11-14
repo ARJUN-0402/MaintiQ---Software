@@ -14,7 +14,7 @@ A desktop decision-support prototype for binary machine-failure prediction using
 [![Ruff](https://img.shields.io/badge/lint-ruff-ff6f00.svg)](https://docs.astral.sh/ruff/)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-yellow.svg)](https://github.com/ARJUN-0402/MaintiQ---Software)
 
-**Version:** 0.1.0  
+**Version:** 0.2.0  
 **Repository:** https://github.com/ARJUN-0402/MaintiQ---Software
 
 ---

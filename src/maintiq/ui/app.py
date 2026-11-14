@@ -46,6 +46,7 @@ def create_application(argv: list[str] | None = None) -> QApplication:
     app.setApplicationName(APP_TITLE)
     app.setApplicationVersion(__version__)
     app.setOrganizationName("MaintiQ Project")
+    app.setFont(QFont("Segoe UI", 10))
     app.setWindowIcon(_application_icon())
     app.setStyleSheet(APP_STYLESHEET)
     return app

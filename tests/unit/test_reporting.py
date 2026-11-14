@@ -50,7 +50,7 @@ def test_export_json(tmp_path):
     )
     assert path.exists()
     data = json.loads(path.read_text(encoding="utf-8"))
-    assert data["maintiq_version"] == "0.1.0"
+    assert data["maintiq_version"] == "0.2.0"
     assert data["model"]["name"] == "random_forest"
     assert data["model"]["version"] == "v1"
     assert data["dataset"]["fingerprint"] == "abc123"

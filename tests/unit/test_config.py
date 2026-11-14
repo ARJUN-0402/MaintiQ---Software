@@ -42,7 +42,7 @@ def test_config_defaults():
     """Configuration defaults match the project specification."""
     config = AppConfig()
     assert config.title == "MaintiQ"
-    assert config.version == "0.1.0"
+    assert config.version == "0.2.0"
     assert config.random_seed == 42
     assert config.default_threshold == 0.5
     assert "xgboost" in config.supported_models

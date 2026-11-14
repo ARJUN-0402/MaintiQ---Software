@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: maintiq
-Version: 0.1.0
+Version: 0.2.0
 Summary: Industrial Failure Prediction with Explainable Artificial Intelligence (academic predictive-maintenance prototype)
 Author: MaintiQ Project
 License: MIT
@@ -33,121 +33,521 @@ Requires-Dist: pytest<9.0,>=8.0; extra == "dev"
 Requires-Dist: pytest-qt<5.0,>=4.0; extra == "dev"
 Requires-Dist: ruff<1.0,>=0.8; extra == "dev"
 
-# MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence
+﻿# MaintiQ
 
-An academic machine-learning predictive-maintenance decision-support prototype.
-MaintiQ predicts the binary `Machine failure` target using the AI4I 2020
-Predictive Maintenance Dataset and explains model behaviour with SHAP and LIME.
+**Industrial Failure Prediction with Explainable Artificial Intelligence**
 
-## Status
+A desktop decision-support prototype for binary machine-failure prediction using the AI4I 2020 Predictive Maintenance dataset. Built as a Python package with a native PySide6 GUI, four candidate classifiers, SHAP/LIME explainability, a JSON-backed model registry, and report export.
 
-This is an academic prototype under active development. See
-`IMPLEMENTATION_STATUS.md` for phase progress and `docs/` for design documents.
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/PySide6-6.6%2B-blue.svg)](https://www.qt.io/qt-for-python)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-blue.svg)](https://scikit-learn.org/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-2.0%2B-blue.svg)](https://xgboost.ai/)
+[![SHAP](https://img.shields.io/badge/SHAP-0.44%2B-blue.svg)](https://shap.readthedocs.io/)
+[![LIME](https://img.shields.io/badge/LIME-0.2%2B-blue.svg)](https://github.com/marcotcr/lime)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue.svg)](https://www.microsoft.com/windows)
+[![Ruff](https://img.shields.io/badge/lint-ruff-ff6f00.svg)](https://docs.astral.sh/ruff/)
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-yellow.svg)](https://github.com/ARJUN-0402/MaintiQ---Software)
 
-## Purpose
+**Version:** 0.2.0  
+**Repository:** https://github.com/ARJUN-0402/MaintiQ---Software
 
-Predict whether a machine will fail based on operational sensor readings, and
-explain which features drove each prediction. It is a desktop decision-support
-tool, not a certified industrial diagnostic product.
+---
 
-## Academic / safety notice
+## Table of Contents
 
-> **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
-> dataset. Predictions and explanations are model outputs, not certified industrial
-> diagnoses or maintenance instructions. Qualified human review is required.**
+1. [Project Overview](#project-overview)
+2. [Problem Statement](#problem-statement)
+3. [Project Objectives](#project-objectives)
+4. [Key Features](#key-features)
+5. [Application Screenshots](#application-screenshots)
+6. [Technology Stack](#technology-stack)
+7. [Machine Learning Methodology](#machine-learning-methodology)
+8. [Explainable Artificial Intelligence](#explainable-artificial-intelligence)
+9. [Dataset Information](#dataset-information)
+10. [Architecture](#architecture)
+11. [Installation and Usage](#installation-and-usage)
+12. [Windows Executable](#windows-executable)
+13. [Testing and Quality Assurance](#testing-and-quality-assurance)
+14. [Project Structure](#project-structure)
+15. [Limitations and Future Scope](#limitations-and-future-scope)
+16. [Academic Context](#academic-context)
+17. [References](#references)
+18. [Licence and Credits](#licence-and-credits)
 
-MaintiQ does not:
-- diagnose real machinery,
-- connect to, control, or send commands to machinery,
-- claim live factory telemetry, PLC, SCADA, or MES integration,
-- present SHAP/LIME contributions as causal explanations,
-- present a model score as a guaranteed real-world failure probability unless
-  calibration is implemented and verified.
+---
 
-## Technology stack
+## Project Overview
 
-- Python 3.11+ (built and tested with Python 3.13 in this environment)
-- PySide6 — native desktop GUI
-- pandas / NumPy — tabular data
-- scikit-learn — preprocessing, pipelines, models, metrics
-- XGBoost — gradient boosting classifier
-- SHAP / LIME — model explanations
-- Matplotlib — charts and exported figures
-- Joblib — model-pipeline serialization
-- PyInstaller — Windows executable packaging
-- Inno Setup — Windows installer (when available)
+MaintiQ is an academic decision-support prototype that predicts whether an industrial machine will fail, based on six operational sensor readings. It provides a native Windows desktop application (PySide6) for importing a CSV dataset, training and comparing classification models, running single-record failure predictions, generating SHAP/LIME explanations, and exporting evaluation reports.
 
-## Repository layout
+The system addresses predictive maintenance: using operational data to anticipate equipment failure before it occurs, rather than reacting after breakdown or servicing on a fixed schedule. Machine-learning failure prediction learns patterns from labelled historical data (failure / no-failure) and scores new machine states. Explainable AI (SHAP, LIME) makes individual predictions interpretable by attributing the score to contributing features, supporting human review rather than replacing it.
 
+MaintiQ is intended for technical readers, university project evaluation, and software-engineering portfolio use. It is not a certified industrial diagnostic system.
+
+---
+
+## Problem Statement
+
+Industrial maintenance commonly follows two strategies:
+
+- **Reactive maintenance** — repair after failure. Unplanned downtime, emergency parts, and production loss are typical costs.
+- **Time-based preventive maintenance** — service on a fixed calendar interval regardless of actual machine condition. Components are replaced before end-of-life, wasting usable capacity, and failures can still occur between intervals.
+
+A data-driven approach uses operational telemetry (temperature, speed, torque, tool wear, machine type) to predict binary machine failure (`0` = no failure, `1` = failure) for a given machine state. MaintiQ demonstrates this approach end-to-end: dataset import and validation, preprocessing, feature engineering, model training and comparison, threshold analysis, prediction, explainability, and reporting — all within a desktop application.
+
+**Academic prototype distinction.** MaintiQ is a prototype built on the public AI4I 2020 benchmark dataset. Predictions and explanations are model outputs, not certified industrial diagnoses or maintenance instructions. Qualified human review is required before acting on any output. The application does not connect to machinery, PLCs, SCADA, or MES systems.
+
+---
+
+## Project Objectives
+
+The implemented objectives are:
+
+1. **Dataset inspection and validation** — load and validate an AI4I-style CSV against a formal schema; reject missing required columns, invalid target values, unexpected categories, and out-of-domain numerics.
+2. **Data preprocessing** — leakage-safe imputation, categorical encoding, and scaling fitted on the training partition only; stratified train/test split.
+3. **Feature engineering** — derive `temperature_diff`, `power_kw`, `wear_rate_proxy`, `torque_normalized`, and `temp_wear_interaction` from the six canonical inputs.
+4. **Classification model training** — train Logistic Regression, Random Forest, Gradient Boosting, and XGBoost with reproducible random seeds and class-imbalance handling.
+5. **Model evaluation and comparison** — compute accuracy, precision, recall, F1, ROC-AUC, confusion matrix, specificity, balanced accuracy, FPR, FNR, and average precision on a held-out test set; compare all four models on identical partitions.
+6. **Threshold analysis** — leakage-safe threshold selection on validation scores only, with deterministic tie-breaking.
+7. **Failure prediction** — single-record inference through a saved pipeline, with out-of-distribution warnings.
+8. **Explainable AI** — local SHAP and LIME explanations, plus global SHAP feature importance where the backend is available.
+9. **Reporting** — export metrics, dataset profiles, threshold analysis, and evaluation charts to JSON, CSV, and PNG.
+10. **Windows desktop application delivery** — native PySide6 GUI with 12 pages, background workers for long-running tasks, and a PyInstaller portable executable.
+
+---
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| Desktop dashboard | Status summary (dataset, registered models, selected model, last training) with quick navigation to import, train, predict, and reports. |
+| Dataset import and validation | CSV import via file dialog or menu; schema validation against the AI4I contract; original source file is never modified. |
+| Dataset exploration | View dataset profile and active-frame metadata. |
+| Exploratory data analysis | Visualisation page for dataset inspection. |
+| Model training | Train one of four candidate classifiers on the active dataset; background worker with progress reporting and safe cancellation. |
+| Prediction | Single-record failure prediction through a registered model, with class, score, threshold, and out-of-distribution warnings. |
+| Model comparison | Train and compare all four candidates on identical partitions; report per-model status (success/unavailable/failed). |
+| Performance evaluation | Metrics, confusion matrix, ROC and precision-recall charts on the held-out test set. |
+| Model registry | JSON-backed registry with monotonic versioning (v1, v2, …), per-artefact SHA-256 hashes verified before load, atomic writes, and delete UX. |
+| SHAP explanations | Local `KernelExplainer` explanations and global mean-absolute feature importance; clear error when SHAP is unavailable. |
+| LIME explanations | Local `LimeTabularExplainer` explanations; available where the `lime` package imports successfully. |
+| Threshold analysis | Candidate-threshold evaluation on validation scores with F1-based recommendation and FP/FN trade-off charts. |
+| Reports and exports | Export metrics (JSON), threshold analysis (CSV), and evaluation charts (PNG), including bundled export. |
+| Application settings and information | Settings page; About/Limitations page showing version, academic notice, technology stack, and known limitations. |
+
+Features marked optional (SHAP, LIME) degrade gracefully: the application continues without explanations and reports the unavailability explicitly. No unfinished feature is documented as completed.
+
+---
+
+## Application Screenshots
+
+The following screenshots are real renders of the running PySide6 application, captured with `QT_QPA_PLATFORM=offscreen`.
+
+### Main application window
+
+![MaintiQ Main Window](docs/screenshots/main_window.png)
+
+The main window shows the sidebar navigation (12 pages), menu bar, status bar, and the persistent academic-prototype notice banner at the bottom.
+
+### Dashboard
+
+![MaintiQ Dashboard](docs/screenshots/dashboard.png)
+
+Dataset and model status cards with quick-action buttons for import, training, prediction, and reports.
+
+### Predict Failure
+
+![MaintiQ Predict Failure](docs/screenshots/predict_failure.png)
+
+Six-attribute input form (machine type, air temperature, process temperature, rotational speed, torque, tool wear) with model/version selection, prediction result cards, and explain action.
+
+### Model Registry
+
+![MaintiQ Model Registry](docs/screenshots/model_registry.png)
+
+Registered model versions table with metrics, timestamps, artefact paths, SHA-256 references, and delete actions.
+
+### Reports
+
+![MaintiQ Reports and Downloads](docs/screenshots/reports_downloads.png)
+
+Report type selector (JSON metrics, dataset profile, threshold analysis CSV, evaluation charts PNG, export bundle) with model/version selection and export dialog.
+
+### About / Limitations
+
+![MaintiQ About / Limitations](docs/screenshots/about_limitations.png)
+
+Project identity, version, academic-prototype notice, listed limitations, and technology stack.
+
+---
+
+## Technology Stack
+
+| Category | Technology | Role |
+|----------|------------|------|
+| Programming language | Python 3.10+ | Application runtime |
+| Desktop interface | PySide6 6.6+ | Native Windows GUI (QMainWindow, QStackedWidget, QThreadPool) |
+| Data processing | pandas, NumPy | Data frames, numerical computation |
+| Machine learning | scikit-learn, XGBoost | Classification models (LR, RF, GB fallback, XGB) |
+| Explainable AI | SHAP, LIME | Local and global prediction explanations |
+| Visualisation | Matplotlib | Evaluation charts and EDA plots |
+| Serialisation | joblib | Trained pipeline persistence |
+| Testing | pytest, pytest-qt | Unit, integration, and GUI tests |
+| Code quality | Ruff | Lint and format enforcement |
+| Packaging | PyInstaller | One-file portable Windows executable |
+| Installer | Inno Setup | Installer script (`maintiq-installer.iss`); `MaintiQ-Setup.exe` not yet compiled |
+
+SHAP and LIME are optional dependencies. The application starts and runs without them; explanations are unavailable when the backend cannot be imported.
+
+---
+
+## Machine Learning Methodology
+
+The implemented workflow is:
+
+1. **Dataset import** — user selects an AI4I-style CSV via the desktop GUI.
+2. **Validation** — schema validation of required columns, target binarity, categories, and numeric domains.
+3. **Preprocessing** — imputation, encoding, and scaling fitted on the training partition only; stratified train/test split (80/20, seed 42).
+4. **Feature engineering** — `temperature_diff`, `power_kw`, `wear_rate_proxy`, `torque_normalized`, `temp_wear_interaction` derived from the six canonical inputs.
+5. **Training** — one of four candidate classifiers is fitted on the training partition; the holdout set is never touched during training.
+6. **Evaluation** — classification metrics computed on the untouched held-out test set.
+7. **Model selection** — all four candidates compared on identical partitions; best model selected by F1 (configurable).
+8. **Prediction** — single-record inference through the saved pipeline with threshold applied to positive-class probability.
+9. **Explanation** — SHAP (global + local) or LIME (local) attribution on demand.
+10. **Reporting** — metrics, threshold analysis, and charts exported to JSON/CSV/PNG.
+
+### Candidate models
+
+| Model | Purpose at BCA project level |
+|-------|------------------------------|
+| Logistic Regression | Linear baseline classifier with `class_weight` for imbalance; interpretable coefficients. |
+| Random Forest | Ensemble of decision trees with `class_weight`; robust to non-linear patterns. |
+| Gradient Boosting | Additive boosting classifier; uses a pure-NumPy fallback (`GradientBoostingFallbackClassifier`) when the scikit-learn native extension is unavailable on Windows. |
+| XGBoost | Gradient boosting with `scale_pos_weight` computed from the training partition only. |
+
+No benchmark accuracy, precision, recall, F1-score, or ROC-AUC results are claimed. Metrics depend on the user-imported dataset and are computed at runtime.
+
+---
+
+## Explainable Artificial Intelligence
+
+MaintiQ integrates two explainability backends, used on demand and never blocking a prediction:
+
+### SHAP (SHapley Additive exPlanations)
+
+- **Local explanation:** `shap.KernelExplainer` over the positive-class probability, model-agnostic and compatible with all four estimators including the Gradient Boosting fallback. Produces per-feature contribution values for a single prediction.
+- **Global explanation:** mean absolute SHAP values across a bounded background sample, producing ranked feature importance.
+- Requires a background reference sample of training rows; cannot produce an explanation without it.
+
+### LIME (Local Interpretable Model-agnostic Explanations)
+
+- **Local explanation:** `lime.lime_tabular.LimeTabularExplainer` over the processed feature space using the same preprocessing the fitted model expects.
+- Requires a training reference sample; inherently local (no global importance).
+
+### Windows compatibility limitation
+
+SHAP imports `sklearn.cluster` internally, whose native `.pyd` extensions can be blocked by Windows Application Control / Smart App Control policies. In such environments `import shap` fails and MaintiQ reports a clear `ExplanationError` rather than crashing or fabricating explanations. LIME remains available where the `lime` package imports successfully. The application continues to run for import, training, prediction, and reporting without explanations.
+
+Explanations describe model behaviour; they are not causal claims and must not be interpreted as maintenance instructions.
+
+---
+
+## Dataset Information
+
+MaintiQ uses the **AI4I 2020 Predictive Maintenance Dataset** from the UCI Machine Learning Repository:
+
+https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset
+
+### Supported input variables
+
+| Variable | Source header | Type | Values / domain | Unit | Role |
+|----------|--------------|------|-----------------|------|------|
+| Machine type | `Type` | Categorical | `L`, `M`, `H` | category | Predictive input |
+| Air temperature | `Air temperature [K]` | Numeric | > 0 | Kelvin (K) | Predictive input |
+| Process temperature | `Process temperature [K]` | Numeric | > 0 | Kelvin (K) | Predictive input |
+| Rotational speed | `Rotational speed [rpm]` | Numeric | > 0 | rpm | Predictive input |
+| Torque | `Torque [Nm]` | Numeric | >= 0 | Nm | Predictive input |
+| Tool wear | `Tool wear [min]` | Numeric | >= 0 | minutes | Predictive input |
+
+### Target
+
+- **Machine failure** (`Machine failure`) — binary target: `0` = no failure, `1` = failure.
+
+### Important
+
+- The AI4I 2020 dataset is **not bundled** with the application. Users import their own supported CSV dataset through the Dataset Explorer or the File > Import dataset menu.
+- No default pre-trained model is supplied. A model must be trained after importing a dataset before prediction is possible.
+- No benchmark metrics are claimed without training and evaluation on the real dataset.
+
+Identifier columns (`UDI`, `Product ID`) and target-derived failure-mode indicators (`TWF`, `HDF`, `PWF`, `OSF`, `RNF`) are excluded from predictive input to prevent target leakage.
+
+---
+
+## Architecture
+
+MaintiQ follows a clean, layered architecture with strict separation between the presentation layer and data-science logic.
+
+```mermaid
+flowchart TD
+    User[User] --> GUI[PySide6 Desktop GUI<br/>QMainWindow, 12 pages]
+    GUI --> Service[ApplicationService<br/>Orchestration layer]
+    
+    Service --> Import[ImportWorkflowService<br/>CSV load & validation]
+    Service --> Trainer[ModelTrainer<br/>LR / RF / GB / XGB]
+    Service --> Registry[ModelRegistry<br/>JSON-backed, SHA-256 verified]
+    Service --> Predict[PredictionService<br/>Single-record inference]
+    Service --> Report[ReportService<br/>JSON / CSV / PNG export]
+    Service --> Eval[EvaluationService<br/>Metrics & threshold analysis]
+    Service --> Explain[Explainability<br/>SHAP & LIME]
+    
+    Import --> Data[Dataset artefacts<br/>%LOCALAPPDATA%/MaintiQ]
+    Trainer --> Registry
+    Predict --> Registry
+    Eval --> Report
+    
+    GUI -.-> Worker[QRunnable / QThreadPool<br/>Background workers]
+    Worker --> Service
 ```
-MaintiQ-Desktop/
-├── src/maintiq/        # Application source (src layout)
-├── assets/             # Icons and sample dataset location
-├── config/             # Configuration files
-├── docs/               # Architecture, data dictionary, user/developer guides
-├── packaging/          # PyInstaller spec and Inno Setup installer
-├── scripts/            # Build scripts
-├── tests/              # Unit, integration, and GUI tests
-├── pyproject.toml
-├── requirements.txt
-├── requirements-dev.txt
-├── README.md
-├── CHANGELOG.md
-└── IMPLEMENTATION_STATUS.md
-```
 
-## Developer setup (Windows)
+### Modular architecture
+
+- **Presentation/UI** (`src/maintiq/ui`) — PySide6 `QMainWindow` with 12 thin page widgets. Pages delegate all data, training, prediction, and reporting work to the injected `ApplicationService`; no model-training logic lives in UI modules. Long-running tasks run on `QRunnable`/`QThreadPool` background workers so the UI never freezes.
+- **Application services** (`src/maintiq/services`) — `ApplicationService` orchestrates import, training, prediction, explanation, and reporting. Independent of PySide6 and dependency-injectable for testing.
+- **ML services** (`src/maintiq/ml`) — preprocessing, feature engineering, training factory, pipeline, registry, evaluation, threshold analysis, comparison, prediction, and explainability.
+- **Data** (`src/maintiq/data`) — dataset schema, CSV loader, validator, profiler, and import workflow.
+- **Core** (`src/maintiq/core`) — typed configuration, rotating-file logging, custom exceptions, path resolution.
+
+Writable runtime data (datasets, models, registry, logs, settings, reports) is stored under the per-user application-data directory (`%LOCALAPPDATA%\MaintiQ` on Windows), never inside a protected installation directory.
+
+---
+
+## Installation and Usage
+
+### 1. Prerequisites
+
+- Windows 10 or 11
+- Python 3.10, 3.11, 3.12, or 3.13
+- `pip` and `venv`
+
+### 2. Repository cloning
 
 ```powershell
-# Create and activate a virtual environment (Python 3.11+ recommended)
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
+git clone https://github.com/ARJUN-0402/MaintiQ---Software.git
+cd MaintiQ---Software
+```
 
-# Upgrade pip and install the package in editable mode
-python -m pip install --upgrade pip
-pip install -e .
+### 3. Virtual environment creation
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 4. Dependency installation
+
+Runtime dependencies:
+
+```powershell
+pip install -r requirements.txt
+```
+
+Development dependencies (testing, linting):
+
+```powershell
 pip install -r requirements-dev.txt
 ```
 
-> If PowerShell blocks script activation, use the virtual environment's Python
-> executable directly: `.\.venv\Scripts\python.exe -m pip install -e .` Do not
-> weaken the machine-wide execution policy.
+Packaging dependencies (PyInstaller portable build):
 
-## Run the application (development)
+```powershell
+pip install -r requirements-packaging.txt
+```
+
+### 5. Development installation
+
+Install the package in editable mode so `python -m maintiq` resolves:
+
+```powershell
+pip install -e .
+```
+
+### 6. Application launch
 
 ```powershell
 python -m maintiq
 ```
 
-The native PySide6 desktop GUI is implemented in Phase 8. Earlier phases provide
-the data, ML, and service layers without a GUI.
+This launches the native PySide6 desktop GUI. The application is offline-capable after installation; no browser or network is required for normal operation.
 
-## Tests and quality checks
+### 7. Dataset import
 
-```powershell
-pytest
-ruff check .
-ruff format --check .
+Obtain the AI4I 2020 CSV from the UCI repository (see [Dataset Information](#dataset-information)). In the application, use **File > Import dataset** (`Ctrl+O`) or the Dataset Explorer page to select the CSV. The file is validated against the AI4I schema; the original source file is never modified.
+
+### 8. Model training
+
+Navigate to **Model Training**, select one of the four candidate models (Logistic Regression, Random Forest, Gradient Boosting, XGBoost), and start training. Training runs on a background worker with progress reporting and safe cancellation. The pipeline is saved and registered in the local model registry.
+
+### 9. Prediction
+
+Navigate to **Predict Failure**, select a registered model and version, enter the six machine attributes, and run inference. The result shows predicted class, failure score, threshold, and any out-of-distribution warnings.
+
+### 10. Report generation
+
+Navigate to **Reports and Downloads**, select a report type (model evaluation metrics JSON, dataset profile JSON, threshold analysis CSV, evaluation charts PNG, or export bundle), choose an output location, and export.
+
+---
+
+## Windows Executable
+
+A portable Windows executable is built with PyInstaller:
+
+- **Location:** `release\MaintiQ-Portable\MaintiQ.exe`
+- **Type:** One-file portable executable (no Python installation required on the target machine)
+- **Build script:** `scripts\build_windows.ps1`
+
+### Windows requirements
+
+- Windows 10 or 11
+- The portable EXE bundles the Python runtime and all dependencies
+
+### Application data location
+
+Writable runtime data (imported datasets, trained models, registry, logs, settings, reports) is stored under `%LOCALAPPDATA%\MaintiQ`, not inside the executable directory.
+
+### Windows Smart App Control limitation
+
+Unsigned `MaintiQ.exe` builds can be blocked by Windows Smart App Control on locked-down systems. Distribution requires an EV code-signed executable or installer, or an end-user policy bypass. Signing does not unblock blocked third-party `.pyd` files (for example, the `sklearn.cluster` extensions that SHAP depends on).
+
+### Installer
+
+An Inno Setup installer script exists at `packaging\maintiq-installer.iss`. The compiled `MaintiQ-Setup.exe` has **not** been produced yet; run `iscc packaging\maintiq-installer.iss` (with Inno Setup 6+ installed) to generate it. No download link is provided.
+
+---
+
+## Testing and Quality Assurance
+
+Verified against the current repository:
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Unit + GUI tests | `pytest tests/ -q` | 236 passed |
+| Lint | `ruff check src/ tests/` | All checks passed |
+| Format check | `ruff format --check src/ tests/` | 97 files already formatted |
+
+Tests cover configuration, paths, logging, imports, data loading/validation/profiling, preprocessing, feature engineering, model factory/training/registry, evaluation, threshold analysis, comparison, charts, reporting, explainability (SHAP/LIME including unavailable-backend behaviour), prediction, application service, integration flows, security hardening, CLI entry point, and GUI navigation (12 pages) in Qt offscreen mode.
+
+---
+
+## Project Structure
+
+```
+MaintiQ/
+├── assets/
+│   ├── datasets/          # Sample dataset location (empty; user imports AI4I CSV)
+│   └── icons/
+│       └── app.ico        # Application icon
+├── config/                # Configuration directory (placeholder)
+├── docs/                  # Documentation and screenshots
+│   ├── screenshots/       # Application screenshots (6 PNG files)
+│   ├── ARCHITECTURE.md
+│   ├── DATA_DICTIONARY.md
+│   ├── DEVELOPER_GUIDE.md
+│   ├── FEATURE_ENGINEERING.md
+│   ├── MODEL_CARD.md
+│   ├── QA_CHECKLIST.md
+│   ├── RELEASE_NOTES.md
+│   ├── SCREENSHOT_CHECKLIST.md
+│   ├── USER_GUIDE.md
+│   └── WINDOWS_COMPATIBILITY.md
+├── packaging/
+│   ├── maintiq-installer.iss   # Inno Setup installer script
+│   └── maintiq.spec            # PyInstaller specification
+├── scripts/
+│   └── build_windows.ps1       # Windows build script
+├── src/
+│   └── maintiq/            # Python package
+│       ├── __init__.py
+│       ├── __main__.py     # Entry point: python -m maintiq
+│       ├── config.py       # Centralised typed configuration
+│       ├── core/           # Exceptions, logging
+│       ├── data/           # Schema, loader, validator, profiler, import workflow
+│       ├── domain/         # Typed business entities
+│       ├── ml/             # Preprocessing, features, training, prediction,
+│       │   │               # evaluation, threshold, comparison, explainability
+│       ├── registry/       # Registry package marker
+│       ├── reporting/      # JSON, CSV, PNG export service
+│       ├── services/       # ApplicationService orchestration
+│       └── ui/             # PySide6 GUI: app, main_window, pages, widgets,
+│       │                   # worker, signals, styles
+├── tests/
+│   ├── unit/               # Unit tests
+│   ├── integration/        # Integration and security tests
+│   └── gui/                # GUI tests (Qt offscreen)
+├── .gitignore
+├── CHANGELOG.md
+├── pyproject.toml
+├── requirements.txt
+├── requirements-dev.txt
+├── requirements-packaging.txt
+└── README.md
 ```
 
-## Packaging (Windows)
+Excluded from this tree: virtual environments (`.venv/`), cache directories (`__pycache__/`, `.pytest_cache/`, `.ruff_cache/`), build artefacts (`build/`, `release/`, `*.egg-info/`), and temporary files.
 
-```powershell
-.\scripts\build_windows.ps1
-```
+---
 
-Produces `release/MaintiQ-Portable/MaintiQ.exe` and, when Inno Setup is
-available, `release/MaintiQ-Setup.exe`.
+## Limitations and Future Scope
 
-## Documentation
+### Existing limitations
 
-- `docs/ARCHITECTURE.md` — architecture and module responsibilities
-- `docs/DATA_DICTIONARY.md` — source fields, target, exclusions, units
-- `docs/FEATURE_ENGINEERING.md` — exact formulas and fitting behaviour
-- `docs/MODEL_CARD.md` — training setup, evaluation, caveats, intended use
-- `docs/USER_GUIDE.md` — install, launch, workflow, reports
-- `docs/DEVELOPER_GUIDE.md` — environment, commands, tests, packaging
+- The AI4I 2020 dataset is not bundled; the user imports it via CSV. No benchmark metrics are claimed without the real dataset.
+- No default trained model is shipped. A model must be trained after importing a dataset before prediction.
+- SHAP is unavailable when Windows Application Control blocks `sklearn.cluster` native extensions; LIME is used instead where importable. Unavailability is reported explicitly — no explanations are fabricated.
+- Some scikit-learn compiled submodules may be blocked depending on system policy; MaintiQ avoids eager startup imports but cannot load blocked third-party `.pyd` files.
+- Unsigned `MaintiQ.exe` builds are blocked by Windows Smart App Control in this environment.
+- The compiled Inno Setup installer (`MaintiQ-Setup.exe`) has not yet been produced; only the `.iss` script exists.
+- Gradient Boosting uses a pure-NumPy fallback when the scikit-learn native gradient-boosting extension is unavailable.
 
-## License
+### Potential future improvements
 
-MIT
+- Signed Windows distribution (EV code-signed executable/installer)
+- Compiled `MaintiQ-Setup.exe` installer
+- Direct dataset integration (bundled sample dataset)
+- Model monitoring and drift detection
+- Industrial telemetry integration (PLC, SCADA, MES) after suitable validation
+
+Existing features are documented in [Key Features](#key-features); proposed improvements above are not implemented.
+
+---
+
+## Academic Context
+
+MaintiQ is presented as a Bachelor of Computer Applications (BCA) capstone project. The project uses the public AI4I 2020 Predictive Maintenance Dataset from the UCI Machine Learning Repository.
+
+**Academic integrity notice.** MaintiQ is an academic decision-support prototype. Predictions and explanations are model outputs, not certified industrial diagnoses or maintenance instructions. Qualified human review is required. The application does not connect to physical machinery or industrial control systems.
+
+No university approvals, awards, certifications, or guide endorsements are claimed. No internal AI development prompts, conversation logs, or execution instructions are referenced in this documentation.
+
+---
+
+## References
+
+| Reference | URL |
+|-----------|-----|
+| AI4I 2020 Predictive Maintenance Dataset (UCI) | https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset |
+| scikit-learn documentation | https://scikit-learn.org/stable/ |
+| XGBoost documentation | https://xgboost.readthedocs.io/ |
+| SHAP documentation | https://shap.readthedocs.io/ |
+| LIME repository | https://github.com/marcotcr/lime |
+| PySide6 documentation | https://doc.qt.io/qtforpython/ |
+| PyInstaller documentation | https://pyinstaller.org/en/stable/ |
+| Inno Setup | https://jrsoftware.org/isinfo.php |
+
+---
+
+## Licence and Credits
+
+No `LICENSE` file exists in the repository. Although `pyproject.toml` declares the MIT licence, no open-source licence has been formally specified in the repository. Users should treat the project as all rights reserved until a licence file is added.
+
+Third-party datasets and dependencies remain the property of their respective authors and are governed by their own licences. MaintiQ does not claim ownership of the AI4I 2020 dataset, scikit-learn, XGBoost, SHAP, LIME, PySide6, Matplotlib, joblib, pytest, Ruff, PyInstaller, or Inno Setup.

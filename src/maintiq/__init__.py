@@ -1,6 +1,6 @@
 """MaintiQ - Industrial Failure Prediction with Explainable Artificial Intelligence."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __title__ = "MaintiQ"
 __description__ = (
     "Industrial Failure Prediction with Explainable Artificial Intelligence "

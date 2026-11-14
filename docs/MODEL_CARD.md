@@ -1,9 +1,9 @@
-# Model Card — MaintiQ v0.1.0
+# Model Card — MaintiQ v0.2.0
 
 ## Model details
 
 - **Project:** MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence
-- **Package:** `maintiq` (version `0.1.0`)
+- **Package:** `maintiq` (version `0.2.0`)
 - **Purpose:** Academic decision-support prototype that predicts the binary `Machine failure` target from six operational sensor readings and explains model behaviour with SHAP and LIME where those optional dependencies are available.
 - **Intended audience:** Students, instructors, and academic reviewers (Uttaranchal University BCA project scope). Not a certified industrial diagnostic product.
 - **License:** MIT
@@ -63,4 +63,5 @@ No benchmark metrics or training results are claimed without the real AI4I datas
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 0.2.0 | 2026-11-14 | Version bump 0.1.0 → 0.2.0 (pyproject.toml, package metadata, installer script). Release documentation updated. No machine-learning functionality changed. Remaining limitations: code-signing certificate pending, Inno Setup installer compilation pending, clean-machine Smart App Control testing pending. |
 | 0.1.0 | 2026-11-14 | Initial release: dataset ingestion, preprocessing, feature engineering, four-model training with registry, evaluation and threshold analysis, SHAP/LIME explanations, prediction engine, PySide6 desktop GUI, reports/exports, PyInstaller portable build and Inno Setup installer configuration. |

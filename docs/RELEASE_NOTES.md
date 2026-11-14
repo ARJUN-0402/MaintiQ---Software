@@ -1,9 +1,59 @@
-# MaintiQ Release Notes — v0.1.0
+# MaintiQ Release Notes
+
+## [0.2.0] — 2026-11-14
 
 **Release date:** 2026-11-14  
 **Application:** MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence  
 **Academic basis:** Uttaranchal University BCA project synopsis (AI4I 2020 Predictive Maintenance Dataset)  
-**Status:** Final release — phases 0–11 implemented; phase 12 is documentation and academic handover.
+**Status:** Release — version bump 0.1.0 → 0.2.0; no machine-learning changes.
+
+> **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
+> dataset. Predictions and explanations are model outputs, not certified industrial
+> diagnoses or maintenance instructions. Qualified human review is required.**
+
+### What is new in v0.2.0
+
+- **Version bump 0.1.0 → 0.2.0**, applied consistently across:
+  - `pyproject.toml` (`[project] version = "0.2.0"`)
+  - Package metadata: `src/maintiq/__init__.py` (`__version__`), `src/maintiq/config.py` (`APP_VERSION`)
+  - `src/maintiq.egg-info/PKG-INFO` (package metadata)
+  - `packaging\maintiq-installer.iss` (`MyAppVersion`)
+  - About page, window title, and generated reports consume the single `__version__` source of truth.
+- Release documentation updated: `README.md`, `docs/MODEL_CARD.md`, `docs/DEVELOPER_GUIDE.md`, `docs/USER_GUIDE.md`, `docs/QA_CHECKLIST.md`, `docs/SCREENSHOT_CHECKLIST.md`, `docs/PHASE10_INNO_SETUP_INSTALLER.md`.
+- Tests updated to assert version 0.2.0: `tests/unit/test_config.py`, `tests/unit/test_reporting.py`.
+- **No machine-learning functionality was modified.** Training, prediction, evaluation, thresholds, explainability (SHAP/LIME), and registry behaviour are unchanged from v0.1.0.
+
+### Release artefacts
+
+| Artefact | Path | Notes |
+|----------|------|-------|
+| Source package | `src/maintiq/` | Version 0.2.0 |
+| Installer script | `packaging\maintiq-installer.iss` | Inno Setup 6; `MaintiQ-Setup.exe` not yet compiled (see limitations) |
+| PyInstaller spec | `packaging\maintiq.spec` | Gitignored build input |
+
+### Version manifest
+
+| Field | Value |
+|-------|-------|
+| Application | MaintiQ |
+| Version | 0.2.0 |
+| Release date | 2026-11-14 |
+| Previous version | 0.1.0 (2026-11-14) |
+
+### Known limitations
+
+- The AI4I 2020 dataset is not bundled; import it via Dataset Explorer before training. No benchmark metrics are claimed without the real dataset; no default trained model is shipped.
+- SHAP is unavailable when `sklearn.cluster` native extensions are blocked by Windows Application Control/Smart App Control; LIME works where importable. Unavailability is reported explicitly — no explanations are fabricated.
+- Unsigned `MaintiQ.exe` builds are blocked by Windows Smart App Control in this environment. Distribution requires an EV code-signed executable/installer or an end-user policy bypass; signing does not unblock blocked third-party `.pyd` files.
+- **Trusted code-signing certificate pending.** No code-signing certificate is available in this environment.
+- **Inno Setup installer compilation pending.** `ISCC.exe` is not installed; only the installer script exists.
+- **Clean-machine Smart App Control testing pending.** No clean Windows 10/11 machine or VM is available; all EXE/Smart App Control results were observed on the development machine.
+- The compiled Inno Setup installer (`MaintiQ-Setup.exe`) has not yet been produced; only the `.iss` script exists.
+- Gradient Boosting uses a pure-NumPy fallback when the scikit-learn native gradient-boosting extension is unavailable.
+
+---
+
+# MaintiQ Release Notes — v0.1.0 (historical, preserved)
 
 > **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
 > dataset. Predictions and explanations are model outputs, not certified industrial

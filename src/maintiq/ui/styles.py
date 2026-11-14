@@ -7,7 +7,7 @@ Designed to scale with standard Windows DPI settings.
 
 APP_STYLESHEET = """
 QWidget {
-    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 13px;
     color: #e8eaf2;
     background-color: #0f172a;

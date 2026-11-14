@@ -1,6 +1,6 @@
 # MaintiQ Screenshot Checklist — University Demonstration
 
-**Application:** MaintiQ v0.1.0  
+**Application:** MaintiQ v0.2.0  
 **Rule:** Only real screenshots captured from the running application are included.
 No screenshots are fabricated. Screenshots below were captured from the actual
 PySide6 application (`python -m maintiq`, Qt offscreen render of the real

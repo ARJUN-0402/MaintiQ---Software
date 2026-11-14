@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton
 
 from maintiq.services import ApplicationService
 from maintiq.ui.pages.base import BasePage
-from maintiq.ui.widgets.canvas import MatplotlibCanvas
+from maintiq.ui.widgets.canvas import MatplotlibCanvas, _apply_dark_theme
 
 
 class EDAPage(BasePage):
@@ -80,9 +80,9 @@ class EDAPage(BasePage):
                 if values.size:
                     ax.hist(values, bins=20, color="#0ea5e9", edgecolor="#0369a1")
                     ax.set_title(column.replace("_", " ").title())
-                    ax.set_xlabel("")
+                    ax.set_xlabel(column.replace("_", " ").title())
                     ax.set_ylabel("Count")
-                    ax.grid(alpha=0.3)
+                    ax.grid(alpha=0.3, color="#334155")
                 else:
                     ax.set_title(f"{column} (no valid values)")
                     ax.text(0.5, 0.5, "no data", ha="center", va="center", transform=ax.transAxes)
@@ -96,12 +96,13 @@ class EDAPage(BasePage):
             counts = frame[target_column].value_counts().sort_index()
             ax.bar([str(i) for i in counts.index], counts.values, color=["#2dd4bf", "#fb923c"])
             ax.set_title("Target balance")
-            ax.set_xlabel("Machine failure (0 = no, 1 = yes)")
+            ax.set_xlabel("Machine failure (0 = no failure, 1 = failure)")
             ax.set_ylabel("Rows")
-            ax.grid(axis="y", alpha=0.3)
+            ax.grid(axis="y", alpha=0.3, color="#334155")
         else:
             ax.set_title("Target column not present")
             ax.axis("off")
 
         figure.tight_layout()
+        _apply_dark_theme(figure)
         self._canvas.canvas.draw_idle()

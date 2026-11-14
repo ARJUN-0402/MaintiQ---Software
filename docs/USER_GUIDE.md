@@ -1,6 +1,6 @@
 # MaintiQ User Guide
 
-**MaintiQ v0.1.0** — Industrial Failure Prediction with Explainable Artificial Intelligence
+**MaintiQ v0.2.0** — Industrial Failure Prediction with Explainable Artificial Intelligence
 Academic predictive-maintenance decision-support prototype using the AI4I 2020 dataset.
 
 > **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark

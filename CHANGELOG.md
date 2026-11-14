@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0] — 2026-11-14
+
+### Released
+- Version bump 0.1.0 → 0.2.0 across the project: `pyproject.toml` `[project]`, package metadata (`src/maintiq/__init__.py`, `src/maintiq/config.py`), `src/maintiq.egg-info/PKG-INFO`, and the Inno Setup installer script (`packaging\maintiq-installer.iss`).
+- Application title/window and About page report version 0.2.0 (`__version__` single source of truth consumed by `src/maintiq/ui/app.py`, `src/maintiq/ui/main_window.py`, `src/maintiq/ui/pages/about.py`).
+- Generated reports embed `maintiq_version: 0.2.0` via `src/maintiq/reporting/service.py`.
+- Release documentation updated: `README.md`, `docs/RELEASE_NOTES.md`, `docs/MODEL_CARD.md`, `docs/DEVELOPER_GUIDE.md`, `docs/USER_GUIDE.md`, `docs/QA_CHECKLIST.md`, `docs/SCREENSHOT_CHECKLIST.md`.
+- Tests updated to assert version 0.2.0 (`tests/unit/test_config.py`, `tests/unit/test_reporting.py`).
+- No machine-learning functionality was modified; training, prediction, evaluation, and explainability behaviour is unchanged from v0.1.0.
+
+### Remaining limitations (release engineering)
+- Trusted code-signing certificate pending: no EV/Authenticode certificate available; `MaintiQ.exe` builds remain unsigned and can be blocked by Windows Smart App Control.
+- Inno Setup installer compilation pending: Inno Setup compiler (`ISCC.exe`) is not installed; `MaintiQ-Setup.exe` has not been produced. Installer script exists at `packaging\maintiq-installer.iss`.
+- Clean-machine Smart App Control testing pending: no clean Windows 10/11 VM or second PC available; unsigned-EXE and blocked-`sklearn.cluster` behaviour observed only on the development machine.
+
 ## [0.1.0] — 2026-11-14
 
 ### Added

@@ -1,0 +1,58 @@
+# MaintiQ build environment lock file (Phase 4).
+#
+# Exact versions of all packages installed in .venv-build, captured with
+# `pip freeze`. These are the versions tested for the reproducible build
+# environment. Do not blindly upgrade; re-test after any change.
+#
+# Regenerate with: .venv-build\Scripts\python.exe -m pip freeze > requirements-build.lock
+
+altgraph==0.17.5
+cloudpickle==3.1.2
+colorama==0.4.6
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.68.0
+imageio==2.38.1
+iniconfig==2.3.1
+joblib==1.6.0
+kiwisolver==1.5.1
+lazy-loader==0.6
+lime==0.2.0.1
+matplotlib==3.11.2
+narwhals==2.28.0
+networkx==3.7
+numpy==2.5.4
+packaging==26.3
+pandas==2.3.3
+pefile==2024.8.26
+pillow==13.0.0
+pluggy==1.7.0
+pygments==2.21.0
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.10
+pyparsing==3.3.3
+pytest==9.2.0
+python-dateutil==4.0.0
+pytz==2026.6
+pywin32-ctypes==0.2.3
+scikit-image==0.26.0
+scikit-learn==1.9.1
+scipy==1.18.1
+setuptools==84.2.1
+shap==0.54.1
+shiboken6==6.12.0
+threadpoolctl==3.8.0
+tifffile==2026.11.12
+tqdm==4.70.1
+tzdata==2026.6
+xgboost==2.1.4
+
+# PySide6 components
+PySide6==6.12.0
+PySide6-Addons==6.12.0
+PySide6-Essentials==6.12.0
+PySide6-Pdf==6.12.0.140
+PySide6-WebEngine==6.12.0.140
+
+# Python interpreter
+python==3.13.14

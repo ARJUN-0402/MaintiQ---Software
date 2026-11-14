@@ -98,8 +98,9 @@ class ApplicationService:
             "threshold": threshold,
             "cancelled_check": cancelled_check,
         }
-        if progress_callback is not None:
-            kwargs["progress_callback"] = progress_callback
+        # progress_callback is consumed internally by ModelTrainer.train_model
+        # via self.progress_callback; do not forward it as a call argument.
+        self.trainer.progress_callback = progress_callback or (lambda _msg: None)
         return self.trainer.train_model(**kwargs)
 
     def list_models(self) -> list[str]:

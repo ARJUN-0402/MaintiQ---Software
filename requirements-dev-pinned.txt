@@ -1,0 +1,9 @@
+# MaintiQ development dependencies (pinned).
+# Installed into .venv-build for testing and linting only; not part of the
+# standard release bundle.
+#
+# Install with: .venv-build\Scripts\python.exe -m pip install -r requirements-dev-pinned.txt
+
+pytest==9.2.0
+pytest-qt==4.5.0
+ruff==0.17.5

@@ -3,7 +3,7 @@
 ; Requires Inno Setup 6+ (https://jrsoftware.org/isinfo.php)
 
 #define MyAppName "MaintiQ"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "MaintiQ Project"
 #define MyAppURL "https://github.com/MaintiQ/MaintiQ"
 #define MyAppExeName "MaintiQ.exe"

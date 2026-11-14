@@ -1,6 +1,6 @@
 # MaintiQ QA Checklist
 
-**Version:** 0.1.0  
+**Version:** 0.2.0  
 **Environment:** Windows, PowerShell 5.1, Python 3.13.14 (`.venv`), scikit-learn 1.9.1, PySide6 6.12.0  
 **Date:** 2026-11-14  
 **Scope:** All implemented phases (0–11); phase 12 is documentation and release handover.
@@ -15,7 +15,7 @@
 |-------|---------|--------|
 | Unit tests | `pytest tests/unit -q` | 203 passed |
 | GUI tests | `pytest tests/gui -q` | 15 passed (Qt offscreen mode) |
-| Combined unit + GUI | `pytest tests/ -q` | 218 passed |
+| Combined unit + GUI | `pytest tests/ -q` | 236 passed |
 
 Note: `pytest tests/integration tests/unit -q` previously reported 215 passed with 6 pre-existing
 SHAP-availability failures unrelated to this phase; after the runtime environment changed
