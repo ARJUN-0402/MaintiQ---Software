@@ -1,0 +1,153 @@
+Metadata-Version: 2.4
+Name: maintiq
+Version: 0.1.0
+Summary: Industrial Failure Prediction with Explainable Artificial Intelligence (academic predictive-maintenance prototype)
+Author: MaintiQ Project
+License: MIT
+Keywords: predictive-maintenance,machine-failure,explainable-ai,shap,lime,pyside6,desktop
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Win32 (MS Windows)
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Desktop Environment
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pandas<3.0,>=2.0
+Requires-Dist: numpy<3.0,>=1.24
+Requires-Dist: scikit-learn<2.0,>=1.3
+Requires-Dist: xgboost<3.0,>=2.0
+Requires-Dist: shap<1.0,>=0.44
+Requires-Dist: lime<1.0,>=0.2
+Requires-Dist: matplotlib<4.0,>=3.8
+Requires-Dist: PySide6<7.0,>=6.6
+Requires-Dist: joblib<2.0,>=1.3
+Provides-Extra: dev
+Requires-Dist: pytest<9.0,>=8.0; extra == "dev"
+Requires-Dist: pytest-qt<5.0,>=4.0; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.8; extra == "dev"
+
+# MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence
+
+An academic machine-learning predictive-maintenance decision-support prototype.
+MaintiQ predicts the binary `Machine failure` target using the AI4I 2020
+Predictive Maintenance Dataset and explains model behaviour with SHAP and LIME.
+
+## Status
+
+This is an academic prototype under active development. See
+`IMPLEMENTATION_STATUS.md` for phase progress and `docs/` for design documents.
+
+## Purpose
+
+Predict whether a machine will fail based on operational sensor readings, and
+explain which features drove each prediction. It is a desktop decision-support
+tool, not a certified industrial diagnostic product.
+
+## Academic / safety notice
+
+> **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
+> dataset. Predictions and explanations are model outputs, not certified industrial
+> diagnoses or maintenance instructions. Qualified human review is required.**
+
+MaintiQ does not:
+- diagnose real machinery,
+- connect to, control, or send commands to machinery,
+- claim live factory telemetry, PLC, SCADA, or MES integration,
+- present SHAP/LIME contributions as causal explanations,
+- present a model score as a guaranteed real-world failure probability unless
+  calibration is implemented and verified.
+
+## Technology stack
+
+- Python 3.11+ (built and tested with Python 3.13 in this environment)
+- PySide6 — native desktop GUI
+- pandas / NumPy — tabular data
+- scikit-learn — preprocessing, pipelines, models, metrics
+- XGBoost — gradient boosting classifier
+- SHAP / LIME — model explanations
+- Matplotlib — charts and exported figures
+- Joblib — model-pipeline serialization
+- PyInstaller — Windows executable packaging
+- Inno Setup — Windows installer (when available)
+
+## Repository layout
+
+```
+MaintiQ-Desktop/
+├── src/maintiq/        # Application source (src layout)
+├── assets/             # Icons and sample dataset location
+├── config/             # Configuration files
+├── docs/               # Architecture, data dictionary, user/developer guides
+├── packaging/          # PyInstaller spec and Inno Setup installer
+├── scripts/            # Build scripts
+├── tests/              # Unit, integration, and GUI tests
+├── pyproject.toml
+├── requirements.txt
+├── requirements-dev.txt
+├── README.md
+├── CHANGELOG.md
+└── IMPLEMENTATION_STATUS.md
+```
+
+## Developer setup (Windows)
+
+```powershell
+# Create and activate a virtual environment (Python 3.11+ recommended)
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# Upgrade pip and install the package in editable mode
+python -m pip install --upgrade pip
+pip install -e .
+pip install -r requirements-dev.txt
+```
+
+> If PowerShell blocks script activation, use the virtual environment's Python
+> executable directly: `.\.venv\Scripts\python.exe -m pip install -e .` Do not
+> weaken the machine-wide execution policy.
+
+## Run the application (development)
+
+```powershell
+python -m maintiq
+```
+
+The native PySide6 desktop GUI is implemented in Phase 8. Earlier phases provide
+the data, ML, and service layers without a GUI.
+
+## Tests and quality checks
+
+```powershell
+pytest
+ruff check .
+ruff format --check .
+```
+
+## Packaging (Windows)
+
+```powershell
+.\scripts\build_windows.ps1
+```
+
+Produces `release/MaintiQ-Portable/MaintiQ.exe` and, when Inno Setup is
+available, `release/MaintiQ-Setup.exe`.
+
+## Documentation
+
+- `docs/ARCHITECTURE.md` — architecture and module responsibilities
+- `docs/DATA_DICTIONARY.md` — source fields, target, exclusions, units
+- `docs/FEATURE_ENGINEERING.md` — exact formulas and fitting behaviour
+- `docs/MODEL_CARD.md` — training setup, evaluation, caveats, intended use
+- `docs/USER_GUIDE.md` — install, launch, workflow, reports
+- `docs/DEVELOPER_GUIDE.md` — environment, commands, tests, packaging
+
+## License
+
+MIT

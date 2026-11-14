@@ -1,0 +1,1 @@
+"""MaintiQ application package."""

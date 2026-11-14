@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maintiq"
+version = "0.1.0"
+description = "Industrial Failure Prediction with Explainable Artificial Intelligence (academic predictive-maintenance prototype)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "MaintiQ Project" }]
+license = { text = "MIT" }
+keywords = ["predictive-maintenance", "machine-failure", "explainable-ai", "shap", "lime", "pyside6", "desktop"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Desktop Environment",
+]
+
+dependencies = [
+    "pandas>=2.0,<3.0",
+    "numpy>=1.24,<3.0",
+    "scikit-learn>=1.3,<2.0",
+    "xgboost>=2.0,<3.0",
+    "shap>=0.44,<1.0",
+    "lime>=0.2,<1.0",
+    "matplotlib>=3.8,<4.0",
+    "PySide6>=6.6,<7.0",
+    "joblib>=1.3,<2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-qt>=4.0,<5.0",
+    "ruff>=0.8,<1.0",
+]
+
+[project.scripts]
+maintiq = "maintiq.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["maintiq*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "UP", "C4", "PLC", "PD", "PERF", "RUF", "TRY"]
+ignore = ["E501", "B008", "B018", "UP037", "PLR0913", "PLR0915", "PLR2004", "TRY003", "TRY300", "PERF203"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["maintiq"]
+force-sort-within-sections = true
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"

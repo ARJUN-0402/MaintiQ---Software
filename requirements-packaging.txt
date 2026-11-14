@@ -1,0 +1,3 @@
+# MaintiQ packaging dependencies (Windows executable + installer).
+# Install with: pip install -r requirements-packaging.txt
+pyinstaller>=6.0,<7.0
