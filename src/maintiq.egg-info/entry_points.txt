@@ -1,2 +1,0 @@
-[console_scripts]
-maintiq = maintiq.__main__:main
