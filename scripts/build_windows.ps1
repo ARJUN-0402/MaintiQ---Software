@@ -58,7 +58,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "PyInstaller build failed"
 }
 
-$exe = Join-Path $portableDir "MaintiQ.exe"
+$exe = Join-Path $portableDir "MaintiQ\MaintiQ.exe"
 if (-not (Test-Path $exe)) {
     Write-Error "Expected executable not found: $exe"
 }
@@ -81,5 +81,5 @@ if ($iscc) {
 }
 
 Write-Host "`nBuild complete." -ForegroundColor Cyan
-Write-Host "Portable: $portableDir\MaintiQ.exe" -ForegroundColor Gray
+Write-Host "Portable: $portableDir\MaintiQ\MaintiQ.exe" -ForegroundColor Gray
 if (Test-Path $setupExe) { Write-Host "Installer: $setupExe" -ForegroundColor Gray }

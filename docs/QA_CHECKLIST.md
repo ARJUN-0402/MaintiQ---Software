@@ -52,7 +52,7 @@ SHAP-unavailable behaviour remains covered by monkeypatched tests in
 | 15 | Security hardening: path-traversal rejection, SHA-256 tamper detection, report output sanitization, import size limit, missing/empty file rejection, multi-row input rejection | Passed | `tests/integration/test_security_hardening.py` |
 | 16 | GUI: QApplication creation, main window, all 12 pages, navigation, titles, validation errors, stubbed predict/explain/registry/report flows, no training logic in UI modules | Passed | `tests/gui/test_app.py` (15 tests) |
 | 17 | `python -m maintiq` launches native PySide6 window in Qt offscreen mode; event loop runs | Passed | Verified by launch; `test_module_entrypoint_starts` |
-| 18 | PyInstaller build produced `release\MaintiQ-Portable\MaintiQ.exe` | Passed | `.\scripts\build_windows.ps1` build verification |
+| 18 | PyInstaller build produced `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` | Passed | `.\scripts\build_windows.ps1` build verification |
 
 ## 4. Known limitations (documented, not defects)
 
@@ -65,7 +65,7 @@ SHAP-unavailable behaviour remains covered by monkeypatched tests in
 ## 5. Sign-off
 
 - [ ] All automated checks pass (unit + GUI, lint, format).
-- [ ] Documentation matches implementation (`docs/`, `README.md`, `IMPLEMENTATION_STATUS.md`).
-- [ ] Release artefacts exist (`release\MaintiQ-Portable\MaintiQ.exe`; Inno Setup installer configuration in `packaging\maintiq-installer.iss`).
+- [ ] Documentation matches implementation (`docs/`, `README.md`).
+- [ ] Release artefacts exist (`release\MaintiQ-Portable\MaintiQ\MaintiQ.exe`; Inno Setup installer configuration in `packaging\maintiq-installer.iss`).
 - [ ] Windows build/test status stated truthfully (unsigned EXE launch blocked by Smart App Control in this environment).
 - [ ] Academic prototype limitation displayed in the UI and in generated reports.

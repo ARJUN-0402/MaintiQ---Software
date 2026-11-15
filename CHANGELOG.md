@@ -3,7 +3,7 @@
 ## [0.2.0] — 2026-11-14
 
 ### Released
-- Version bump 0.1.0 → 0.2.0 across the project: `pyproject.toml` `[project]`, package metadata (`src/maintiq/__init__.py`, `src/maintiq/config.py`), `src/maintiq.egg-info/PKG-INFO`, and the Inno Setup installer script (`packaging\maintiq-installer.iss`).
+- Version bump 0.1.0 → 0.2.0 across the project: `pyproject.toml` `[project]`, package metadata (`src/maintiq/__init__.py`, `src/maintiq/config.py`), and the Inno Setup installer script (`packaging\maintiq-installer.iss`).
 - Application title/window and About page report version 0.2.0 (`__version__` single source of truth consumed by `src/maintiq/ui/app.py`, `src/maintiq/ui/main_window.py`, `src/maintiq/ui/pages/about.py`).
 - Generated reports embed `maintiq_version: 0.2.0` via `src/maintiq/reporting/service.py`.
 - Release documentation updated: `README.md`, `docs/RELEASE_NOTES.md`, `docs/MODEL_CARD.md`, `docs/DEVELOPER_GUIDE.md`, `docs/USER_GUIDE.md`, `docs/QA_CHECKLIST.md`, `docs/SCREENSHOT_CHECKLIST.md`.
@@ -25,7 +25,7 @@
   - Rotating-file logging (`src/maintiq/core/logging.py`)
   - Application entry point (`src/maintiq/__main__.py`)
   - `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`, `.gitignore`
-  - `README.md`, `CHANGELOG.md`, `IMPLEMENTATION_STATUS.md`, `docs/ARCHITECTURE.md`
+  - `README.md`, `CHANGELOG.md`, `docs/ARCHITECTURE.md`
   - Initial unit tests for configuration, paths, logging, and imports
 
 ## [0.1.0] — 2026-11-14 (continued)

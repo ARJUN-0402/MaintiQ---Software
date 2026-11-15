@@ -12,7 +12,7 @@ imply disabling Windows security features.
 - XGBoost: 2.1.4
 - SHAP: 0.54.1 (installed)
 - LIME: 0.2.0.1 (installed)
-- Project: `C:\ARRU CODES\projects\MaintiQ`
+- Project: MaintiQ (repository root)
 
 ## Confirmed blocked native dependencies (Windows Application Control / Smart App Control)
 

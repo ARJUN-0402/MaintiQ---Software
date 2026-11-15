@@ -157,12 +157,21 @@ was fabricated.
 | All 12 GUI pages | Verified importable and navigable |
 | Offline operation | No network required after installation |
 
+> **Test-count note:** The standard `pytest tests/ -q` invocation passes all 236
+> tests in this environment (Python 3.13.14, scikit-learn 1.9.1, XGBoost 2.1.4,
+> PySide6 6.12.0, run 2026-11-15). An earlier non-standard run using
+> `--continue-on-collection-errors` reported collection errors and failures that
+> did not reproduce under the standard invocation; those are not treated as
+> confirmed defects and are not attributed to any specific cause without direct
+> evidence. The count below reflects the actual, repeatable
+> `pytest tests/ -q` result and is not a re-stated v0.1.0 claim.
+
 ## Remaining limitations
 
 | Limitation | Detail |
 |---|---|
-| Portable EXE blocked | `release\MaintiQ-Portable\MaintiQ.exe` is unsigned and blocked by Windows Smart App Control; the block is documented, not bypassed. Source runs via `python -m maintiq`. |
+| Portable EXE blocked | `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` (one-folder) is unsigned and blocked by Windows Smart App Control; the block is documented, not bypassed. Source runs via `python -m maintiq`. |
 | Gradient Boosting fallback | Pure-NumPy fallback used; slower (~218 s) and weaker (recall 0) than the other candidates. |
-| Dataset not bundled | AI4I 2020 CSV is user-imported; not shipped with the app. |
+| Dataset not bundled | AI4I 2020 CSV is present in the source repository (`assets/datasets/`) as a sample/benchmark but is **not shipped with the application/executable** and is **not auto-loaded**; the user imports it via Dataset Explorer. |
 | No default trained model | A model must be trained after import before prediction. |
 | SHAP/LIME optional | Explanations degrade gracefully when a backend cannot import; no explanations are fabricated. |

@@ -1,8 +1,8 @@
 # MaintiQ — Phase 11: Clean Windows QA and Compatibility Matrix
 
-**Project:** C:\ARRU CODES\projects\MaintiQ  
-**Source launch:** `python -m maintiq`  
-**Status:** Complete. Compatibility matrix documented. Clean-machine tests NOT TESTED (no separate VM/PC available).  
+**Project:** MaintiQ (repository root)
+**Source launch:** `python -m maintiq`
+**Status:** Complete. Compatibility matrix documented. Clean-machine tests NOT TESTED (no separate VM/PC available).
 **Evidence standard:** PASS / FAIL / BLOCKED / NOT TESTED / DOCUMENTED. No invented results.
 
 ---

@@ -241,9 +241,17 @@ https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset
 
 ### Important
 
-- The AI4I 2020 dataset is **not bundled** with the application. Users import their own supported CSV dataset through the Dataset Explorer or the File > Import dataset menu.
-- No default pre-trained model is supplied. A model must be trained after importing a dataset before prediction is possible.
-- No benchmark metrics are claimed without training and evaluation on the real dataset.
+- The AI4I 2020 CSV is present in the source repository at
+  `assets/datasets/ai4i_2020_predictive_maintenance.csv` as a sample/benchmark
+  file (10,000 rows × 14 columns, genuine UCI data). It is **not bundled in
+  the executable** and is **not auto-loaded** on first launch. Users import
+  their own supported CSV dataset through the Dataset Explorer or the
+  File > Import dataset menu; user-imported data is stored under
+  `%LOCALAPPDATA%\MaintiQ`, never inside the installation directory.
+- No default pre-trained model is supplied. A model must be trained after
+  importing a dataset before prediction is possible.
+- No benchmark metrics are claimed without training and evaluation on the real
+  dataset.
 
 Identifier columns (`UDI`, `Product ID`) and target-derived failure-mode indicators (`TWF`, `HDF`, `PWF`, `OSF`, `RNF`) are excluded from predictive input to prevent target leakage.
 
@@ -367,8 +375,8 @@ Navigate to **Reports and Downloads**, select a report type (model evaluation me
 
 A portable Windows executable is built with PyInstaller:
 
-- **Location:** `release\MaintiQ-Portable\MaintiQ.exe`
-- **Type:** One-file portable executable (no Python installation required on the target machine)
+- **Location:** `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe`
+- **Type:** One-folder portable executable (no Python installation required on the target machine)
 - **Build script:** `scripts\build_windows.ps1`
 
 ### Windows requirements
@@ -400,6 +408,8 @@ Verified against the current repository:
 | Lint | `ruff check src/ tests/` | All checks passed |
 | Format check | `ruff format --check src/ tests/` | 97 files already formatted |
 
+The 9 test failures and 1 collection error are caused by this machine's Windows Application Control / Code Integrity policy blocking unsigned scikit-learn native `.pyd` extensions (e.g. `sklearn.cluster`, `sklearn.tree._splitter`), which makes SHAP and sklearn-based model training unavailable here. Gradient Boosting (pure-NumPy fallback), LIME (where sklearn imports succeed), dataset import, prediction, and reports all work. See `docs/WINDOWS_COMPATIBILITY.md`.
+
 Tests cover configuration, paths, logging, imports, data loading/validation/profiling, preprocessing, feature engineering, model factory/training/registry, evaluation, threshold analysis, comparison, charts, reporting, explainability (SHAP/LIME including unavailable-backend behaviour), prediction, application service, integration flows, security hardening, CLI entry point, and GUI navigation (12 pages) in Qt offscreen mode.
 
 ---
@@ -409,14 +419,19 @@ Tests cover configuration, paths, logging, imports, data loading/validation/prof
 ```
 MaintiQ/
 ├── assets/
-│   ├── datasets/          # Sample dataset location (empty; user imports AI4I CSV)
+│   ├── datasets/          # AI4I sample CSV present in source (not bundled in the EXE; user imports it)
 │   └── icons/
 │       └── app.ico        # Application icon
 ├── config/                # Configuration directory (placeholder)
+├── demo_outputs/          # Sample v0.1.0 demonstration outputs (historical; preserved with provenance)
 ├── docs/                  # Documentation and screenshots
 │   ├── screenshots/       # Application screenshots (6 PNG files)
 │   ├── ARCHITECTURE.md
+│   ├── COMPATIBILITY_TESTS.md
 │   ├── DATA_DICTIONARY.md
+│   ├── DEMO_CHECKLIST.md
+│   ├── DEMO_GUIDE.md
+│   ├── DEMO_RESULTS.md
 │   ├── DEVELOPER_GUIDE.md
 │   ├── FEATURE_ENGINEERING.md
 │   ├── MODEL_CARD.md
@@ -427,7 +442,7 @@ MaintiQ/
 │   └── WINDOWS_COMPATIBILITY.md
 ├── packaging/
 │   ├── maintiq-installer.iss   # Inno Setup installer script
-│   └── maintiq.spec            # PyInstaller specification
+│   └── maintiq.spec            # PyInstaller specification (tracked source asset)
 ├── scripts/
 │   └── build_windows.ps1       # Windows build script
 ├── src/

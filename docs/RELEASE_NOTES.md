@@ -15,11 +15,10 @@
 
 - **Version bump 0.1.0 → 0.2.0**, applied consistently across:
   - `pyproject.toml` (`[project] version = "0.2.0"`)
-  - Package metadata: `src/maintiq/__init__.py` (`__version__`), `src/maintiq/config.py` (`APP_VERSION`)
-  - `src/maintiq.egg-info/PKG-INFO` (package metadata)
+  - `src/maintiq/__init__.py` (`__version__`), `src/maintiq/config.py` (`APP_VERSION`)
   - `packaging\maintiq-installer.iss` (`MyAppVersion`)
   - About page, window title, and generated reports consume the single `__version__` source of truth.
-- Release documentation updated: `README.md`, `docs/MODEL_CARD.md`, `docs/DEVELOPER_GUIDE.md`, `docs/USER_GUIDE.md`, `docs/QA_CHECKLIST.md`, `docs/SCREENSHOT_CHECKLIST.md`, `docs/PHASE10_INNO_SETUP_INSTALLER.md`.
+- Release documentation updated: `README.md`, `docs/MODEL_CARD.md`, `docs/DEVELOPER_GUIDE.md`, `docs/USER_GUIDE.md`, `docs/QA_CHECKLIST.md`, `docs/SCREENSHOT_CHECKLIST.md`.
 - Tests updated to assert version 0.2.0: `tests/unit/test_config.py`, `tests/unit/test_reporting.py`.
 - **No machine-learning functionality was modified.** Training, prediction, evaluation, thresholds, explainability (SHAP/LIME), and registry behaviour are unchanged from v0.1.0.
 
@@ -29,7 +28,7 @@
 |----------|------|-------|
 | Source package | `src/maintiq/` | Version 0.2.0 |
 | Installer script | `packaging\maintiq-installer.iss` | Inno Setup 6; `MaintiQ-Setup.exe` not yet compiled (see limitations) |
-| PyInstaller spec | `packaging\maintiq.spec` | Gitignored build input |
+| PyInstaller spec | `packaging\maintiq.spec` | Tracked source asset; builds a one-folder distribution |
 
 ### Version manifest
 
@@ -84,7 +83,7 @@ Initial public/academic release. Implemented phases:
 |----------|------|-------|
 | Portable executable | `release\MaintiQ-Portable\MaintiQ.exe` | PyInstaller one-file, windowed, SHA-256 below |
 | Installer script | `packaging\maintiq-installer.iss` | Inno Setup 6; `MaintiQ-Setup.exe` produced when `iscc` is available |
-| PyInstaller spec | `packaging\maintiq.spec` | Bundles PySide6, Matplotlib, scikit-learn, XGBoost, SHAP, LIME, icons |
+| PyInstaller spec | `packaging\maintiq.spec` | Bundles PySide6, Matplotlib, scikit-learn, XGBoost, LIME, icons (SHAP and `sklearn.cluster` excluded from the package by design) |
 
 **Executable SHA-256:** `927616252543DE31AB4D6DBE721EDAF8206B4F799D63201BC491990CD9846459`
 (`release\MaintiQ-Portable\MaintiQ.exe`)

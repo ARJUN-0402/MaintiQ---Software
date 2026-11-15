@@ -16,6 +16,7 @@ venv/
 /dist/
 /build/
 /*.egg-info/
+**/*.egg-info/
 /*.egg/
 /release/
 /MaintiQ-Portable/
@@ -23,6 +24,8 @@ venv/
 
 # PyInstaller
 *.spec
+# The release PyInstaller spec is a required source asset and must stay tracked.
+!packaging/maintiq.spec
 *.manifest
 
 # Installer (do not ignore the .iss template; ignore build output only)

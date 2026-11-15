@@ -23,10 +23,10 @@ MaintiQ/
 │   └── __main__.py        # `python -m maintiq` entry point
 ├── assets/
 │   ├── icons/             # app.ico
-│   └── datasets/          # sample dataset location (empty; AI4I CSV not bundled)
+│   └── datasets/          # AI4I sample CSV present in source (not bundled in the EXE; user imports it at runtime)
 ├── config/                # configuration files
 ├── docs/                  # architecture, data dictionary, feature engineering, model card, user guide, developer guide, QA checklist, release notes
-├── packaging/             # maintiq.spec (PyInstaller), maintiq-installer.iss (Inno Setup)
+├── packaging/             # maintiq.spec (tracked PyInstaller spec), maintiq-installer.iss (Inno Setup)
 ├── scripts/
 │   └── build_windows.ps1  # Windows build script
 ├── tests/
@@ -37,8 +37,7 @@ MaintiQ/
 ├── requirements.txt       # runtime dependencies
 ├── requirements-dev.txt   # dev dependencies (pytest, pytest-qt, ruff)
 ├── README.md
-├── CHANGELOG.md
-└── IMPLEMENTATION_STATUS.md # phase tracker and test evidence
+└── CHANGELOG.md
 ```
 
 ## 2. Environment setup (Windows)
@@ -75,8 +74,9 @@ python -m maintiq
 The native PySide6 desktop GUI launches. `maintiq` console script is also
 registered via `pyproject.toml` (`[project.scripts] maintiq = "maintiq.__main__:main"`).
 
-The AI4I dataset is not bundled; import it via the Dataset Explorer before
-training or predicting (see docs/USER_GUIDE.md).
+The AI4I sample CSV is present in `assets/datasets/` but is not bundled in
+the executable and is not auto-loaded on first launch; import it via the
+Dataset Explorer before training or predicting (see docs/USER_GUIDE.md).
 
 ## 4. Test commands
 
@@ -125,17 +125,19 @@ import sorting, unused imports, and common bugs.
 What it does:
 
 1. Installs `requirements-packaging.txt` (`pyinstaller>=6.0,<7.0`).
-2. Cleans `build/` and `release/` output.
-3. Builds `release\MaintiQ-Portable\MaintiQ.exe` via PyInstaller
-   (`packaging\maintiq.spec`): one-file, windowed executable bundling PySide6
-   plugins, Matplotlib, scikit-learn, XGBoost, pandas, NumPy, joblib, SHAP, LIME,
-   icons, and package resources.
+2. Cleans `build/` and `release/MaintiQ-Portable/` output.
+3. Builds `release/MaintiQ-Portable/MaintiQ/` via PyInstaller
+   (`packaging\maintiq.spec`): a **one-folder**, windowed executable bundling
+   PySide6 plugins, Matplotlib, scikit-learn, XGBoost, pandas, NumPy, joblib,
+   LIME, icons, and package resources. SHAP and `sklearn.cluster` are excluded
+   from the bundle (SHAP is optional; its `sklearn.cluster` native extension is
+   blocked by Windows Application Control on locked-down systems).
 4. Compiles `release\MaintiQ-Setup.exe` with Inno Setup (`iscc`) when Inno Setup
    is installed (`packaging\maintiq-installer.iss`).
 
 Outputs:
 
-- `release\MaintiQ-Portable\MaintiQ.exe` — portable executable.
+- `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` — portable one-folder executable.
 - `release\MaintiQ-Setup.exe` — Windows installer (when Inno Setup is available).
 
 The executable stores user data under `%LOCALAPPDATA%\MaintiQ` (frozen-aware
@@ -152,8 +154,8 @@ Build notes observed in this environment:
   Application Control, which makes SHAP unavailable in locked-down Windows
   environments. LIME works where importable. Signing does not unblock blocked
   third-party `.pyd` files under these policies.
-- `packaging\maintiq.spec`, `packaging\maintiq-installer.iss`, and build output
-  under `build/` and `release/` are gitignored.
+- `packaging\maintiq-installer.iss` and build output under `build/` and
+  `release/` are gitignored; `packaging\maintiq.spec` is tracked.
 
 ## 7. Dependency groups
 
@@ -172,7 +174,6 @@ not require them.
 - Package version: `0.2.0` (`pyproject.toml`, `src/maintiq/__init__.py`).
 - Release notes: `docs/RELEASE_NOTES.md`.
 - QA checklist: `docs/QA_CHECKLIST.md`.
-- Phase tracker: `IMPLEMENTATION_STATUS.md`.
 
 ## 9. Conventions
 

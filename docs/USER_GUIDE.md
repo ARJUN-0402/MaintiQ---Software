@@ -37,7 +37,7 @@ Run the installer `MaintiQ-Setup.exe` and follow the prompts:
 - Creates a Start Menu shortcut and, optionally, a desktop shortcut.
 - An uninstaller is available via Start Menu or Settings > Apps.
 
-For a portable install, unzip/run `MaintiQ-Portable\MaintiQ.exe` from the
+For a portable install, run `MaintiQ-Portable\MaintiQ\MaintiQ.exe` from the
 portable build folder (no installation required).
 
 ## 4. First launch
@@ -160,5 +160,5 @@ factory systems, or present model outputs as certified advice.
 
 This is an academic prototype, not a production system. All predictions and
 explanations require qualified human review. See `docs/MODEL_CARD.md`,
-`docs/ARCHITECTURE.md`, `docs/DATA_DICTIONARY.md`, `docs/FEATURE_ENGINEERING.md`,
-and `IMPLEMENTATION_STATUS.md` for implementation details.
+`docs/ARCHITECTURE.md`, `docs/DATA_DICTIONARY.md`, `docs/FEATURE_ENGINEERING.md`
+for implementation details.

@@ -5,7 +5,7 @@
 # Build:
 #   .\.venv\Scripts\pyinstaller packaging\maintiq.spec --noconfirm
 #
-# Output: release\MaintiQ-Portable\MaintiQ.exe (onedir) or
+# Output: release\MaintiQ-Portable\MaintiQ\MaintiQ.exe (one-folder) or
 #         dist\MaintiQ.exe when overriding --distpath. See scripts\build_windows.ps1.
 
 from pathlib import Path

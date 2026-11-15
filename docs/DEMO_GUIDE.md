@@ -5,11 +5,13 @@ end-to-end predictive-maintenance demonstration (all ten checkpoints)
 on the genuine AI4I 2020 dataset. Intended for the BCA capstone viva
 and technical evaluation.
 
-**Application:** `release\MaintiQ-Portable\MaintiQ.exe` (source
-equivalent: `python -m maintiq` from the repository).
+**Application:** `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` (one-folder
+portable executable; source equivalent: `python -m maintiq` from the repository).
 
-**Dataset:** AI4I 2020 Predictive Maintenance Dataset (UCI), imported
-by the user — it is **not bundled** with the application.
+**Dataset:** AI4I 2020 Predictive Maintenance Dataset (UCI). The CSV is
+present in the source repository at `assets/datasets/` as a sample/benchmark,
+but it is **not bundled in the executable** and is **not auto-loaded** on first
+launch — import it via the Dataset Explorer before training or predicting.
 
 Source: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset
 
@@ -18,9 +20,14 @@ Source: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance
 ## Prerequisites
 
 - Windows 10 / 11
-- The repository at `C:\ARRU CODES\projects\MaintiQ`
+- The repository root (clone target). The genuine AI4I 2020 CSV is included in
+  the source repository at `assets/datasets/ai4i_2020_predictive_maintenance.csv`
+  (tracked by Git). It is **not bundled into the packaged executable** and is
+  **not automatically imported on first launch** — import it through Dataset
+  Explorer (`File > Import dataset`, `Ctrl+O`) before training or predicting.
+  If the file is absent, obtain it from the UCI Machine Learning Repository:
+  https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance-dataset
 - Python virtual environment `.venv` with dependencies installed
-- The genuine AI4I CSV downloaded to `assets\datasets\ai4i_2020_predictive_maintenance.csv`
 
 > The portable `MaintiQ.exe` is unsigned and is blocked by Windows
 > Smart App Control on this machine. The block is **documented**, not
@@ -43,7 +50,7 @@ Source: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance
    set QT_QPA_PLATFORM=offscreen
    python -m maintiq
    ```
-   Or double-click `release\MaintiQ-Portable\MaintiQ.exe` where Smart
+   Or double-click `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` where Smart
    App Control policy permits.
 
 **Verify:**
@@ -65,7 +72,9 @@ Source: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance
 
 **User actions:**
 
-1. Obtain the official AI4I 2020 CSV from the UCI repository link
+1. Confirm the sample CSV is present at
+   `assets/datasets/ai4i_2020_predictive_maintenance.csv` (it is included in
+   the source repository). If absent, download it from the UCI repository link
    above (do not fabricate or modify it).
 2. In the application: **File > Import dataset** (`Ctrl+O`) or the
    Dataset Explorer page, then select the CSV.
