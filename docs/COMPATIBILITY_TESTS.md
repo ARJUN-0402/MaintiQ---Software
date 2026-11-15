@@ -1,8 +1,8 @@
-# MaintiQ — Phase 11: Clean Windows QA and Compatibility Matrix
+# MaintiQ — Windows Compatibility and Release Validation
 
 **Project:** MaintiQ (repository root)
 **Source launch:** `python -m maintiq`
-**Status:** Complete. Compatibility matrix documented. Clean-machine tests NOT TESTED (no separate VM/PC available).
+**Status:** Compatibility matrix documented. Clean-machine validation NOT TESTED (no separate VM/PC available). Release acceptance not complete.
 **Evidence standard:** PASS / FAIL / BLOCKED / NOT TESTED / DOCUMENTED. No invented results.
 
 ---
@@ -21,7 +21,7 @@
 | PyInstaller available | YES (6.22.3, `.venv-build`) |
 | Inno Setup / ISCC.exe | NOT INSTALLED |
 
-**Important:** Per Phase 11 rules, tests must be run on "a clean Windows 10/11 VM or second PC without Python or the project's venv" and "Smart App Control in its normal enabled state." This machine is the development machine with Python installed, so clean-machine tests cannot be executed here. All clean-machine tests are marked NOT TESTED.
+**Important:** Windows compatibility validation requirements state that clean-machine tests must be run on "a clean Windows 10/11 VM or second PC without Python or the project's venv" and "Smart App Control in its normal enabled state." This machine is the development machine with Python installed, so clean-machine validation cannot be executed here. All clean-machine tests are marked NOT TESTED.
 
 ---
 
@@ -35,7 +35,7 @@
 | onedir bundle files | `release/staging/onedir/MaintiQ/` | 2,169 files | manifest: `release/staging/onedir_manifest.csv` | — | — |
 | onefile manifest | `release/staging/onefile_manifest.csv` | 1 file | — | — | — |
 
-All three EXEs are **NotSigned** — this is the root cause of the Smart App Control block (Phase 2 CONFIRMED).
+All three EXEs are **NotSigned** — this is the root cause of the Smart App Control block.
 
 ---
 
@@ -49,7 +49,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Windows 11, Evaluation state | — | NOT TESTED | No separate Evaluation-state machine available |
 | Clean Windows 10/11 without Python | — | NOT TESTED | No clean VM/PC available |
 | Standard user account | — | NOT TESTED | Tested as admin on dev machine only |
-| Offline operation after installation | — | NOT TESTED | No installer compiled (Phase 10 BLOCKED) |
+| Offline operation after installation | — | NOT TESTED | No installer compiled (installer not available) |
 
 ### B. Signature and certificate-chain verification
 
@@ -58,7 +58,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Authenticode signature | onedir EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
 | Authenticode signature | onefile EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
 | Authenticode signature | legacy portable EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
-| Certificate chain verification | — | BLOCKED | No code-signing certificate available (Phase 7) |
+| Certificate chain verification | — | BLOCKED | No code-signing certificate available |
 | RFC 3161 timestamping | — | BLOCKED | No signing tool (signtool) available |
 
 **Note:** A valid signature alone is not a Smart App Control test result. The final signed artifact must be tested on a protected clean Windows machine.
@@ -129,7 +129,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | SHAP-unavailable graceful handling | PASS | `explain_local()` raises `ExplanationError`; prediction not failed; `explanation_error` populated |
 | Both backends unavailable | PASS | `explain_local()` raises `ExplanationError`; prediction returned with `explanation=None` |
 
-**Note:** LIME works when sklearn compiled extensions are available (Phase 3 validated `test_explain_with_lime_returns_result` passes). Blocked here by Code Integrity, not a code bug.
+**Note:** LIME works when sklearn compiled extensions are available. Blocked here by Code Integrity, not a code bug.
 
 ### J. Registry and SHA-256 verification
 
@@ -152,7 +152,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Test | Result | Evidence |
 |---|---|---|
 | Settings persistence | NOT TESTED | Requires GUI launch |
-| User-data directory (%LOCALAPPDATA%\\MaintiQ) | NOT TESTED | Requires installer (Phase 10 BLOCKED) |
+| User-data directory (%LOCALAPPDATA%\\MaintiQ) | NOT TESTED | Requires installer (installer not available) |
 | Permissions | NOT TESTED | Requires clean-machine test |
 
 ### M. Installer install/uninstall
@@ -193,7 +193,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 - **Evidence:** Code Integrity event ID 3077 generated when attempting to launch `MaintiQ.exe` (both onedir and one-file variants)
 - **Policy:** `{0283ac0f-fff1-49ae-ada1-8a933130cad6}`, Enterprise signing level
 - **All EXEs NotSigned:** onedir, one-file, and legacy portable
-- **Resolution required:** Code signing with a Microsoft-trusted CA certificate (Phase 7–8 blocked: no certificate available)
+- **Resolution required:** Code signing with a Microsoft-trusted CA certificate (code-signing implementation blocked: no certificate available)
 
 ### Finding 2: Code Integrity blocks sklearn compiled `.pyd` extensions (CONFIRMED)
 
@@ -210,7 +210,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 
 ---
 
-## 6. Acceptance gate — Phase 11
+## 6. Release acceptance criteria
 
 | Criterion | Status |
 |---|---|
@@ -220,15 +220,15 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Smart App Control test evidence separately reported | DOCUMENTED |
 | Valid signature not claimed as Smart App Control test result | DOCUMENTED |
 
-**DOCUMENTED — Phase 11 acceptance gate met.** Compatibility matrix provides complete evidence. Critical blocker remains: unsigned EXE blocked by Smart App Control, requiring code signing (Phases 7–8) and clean-machine retesting.
+**DOCUMENTED — Release acceptance criteria not met.** Compatibility matrix provides complete evidence. Critical blocker remains: unsigned EXE blocked by Smart App Control, requiring code-signing implementation and clean-machine verification.
 
 ---
 
 ## Recommended next steps
 
-1. **Procure an EV code-signing certificate** (Phase 7 blocker)
-2. **Install Inno Setup 6+** (Phase 10 blocker)
-3. **Sign the onedir bundle** using the Phase 8 signing procedure
-4. **Compile the Inno Setup installer** (Phase 10)
-5. **Retest on a clean Windows 10/11 machine with Smart App Control enabled** (Phase 11 clean-machine tests)
-6. **Proceed to Phase 12 (university delivery package)** after clean-machine QA passes
+1. **Procure an EV code-signing certificate** (code-signing blocker)
+2. **Install Inno Setup 6+** (installer blocker)
+3. **Sign the onedir bundle** using the code-signing procedure
+4. **Compile the Inno Setup installer**
+5. **Retest on a clean Windows 10/11 machine with Smart App Control enabled** (clean-machine verification)
+6. **Proceed to the university delivery package** after clean-machine QA passes

@@ -406,9 +406,9 @@ Verified against the current repository:
 |-------|---------|--------|
 | Unit + GUI tests | `pytest tests/ -q` | 236 passed |
 | Lint | `ruff check src/ tests/` | All checks passed |
-| Format check | `ruff format --check src/ tests/` | 97 files already formatted |
+| Format check | `ruff format --check src/ tests/` | 97 files formatted |
 
-The 9 test failures and 1 collection error are caused by this machine's Windows Application Control / Code Integrity policy blocking unsigned scikit-learn native `.pyd` extensions (e.g. `sklearn.cluster`, `sklearn.tree._splitter`), which makes SHAP and sklearn-based model training unavailable here. Gradient Boosting (pure-NumPy fallback), LIME (where sklearn imports succeed), dataset import, prediction, and reports all work. See `docs/WINDOWS_COMPATIBILITY.md`.
+Clean-machine testing and packaged EXE launch have not been verified. The unsigned EXE and unsigned sklearn native `.pyd` extensions are blocked by Windows Smart App Control / Code Integrity on this machine; see `docs/COMPATIBILITY_TESTS.md` and `docs/WINDOWS_COMPATIBILITY.md` for environment details.
 
 Tests cover configuration, paths, logging, imports, data loading/validation/profiling, preprocessing, feature engineering, model factory/training/registry, evaluation, threshold analysis, comparison, charts, reporting, explainability (SHAP/LIME including unavailable-backend behaviour), prediction, application service, integration flows, security hardening, CLI entry point, and GUI navigation (12 pages) in Qt offscreen mode.
 
