@@ -5,18 +5,18 @@
 #define MyAppName "MaintiQ"
 #define MyAppVersion "0.2.0"
 #define MyAppPublisher "MaintiQ Project"
-#define MyAppURL "https://github.com/MaintiQ/MaintiQ"
+#define MyAppURL "https://github.com/ARJUN-0402/MaintiQ---Software"
 #define MyAppExeName "MaintiQ.exe"
 
 [Setup]
-AppId={{{A1B2C3D4-E5F6-7890-ABCD-1234567890AB}}}
+AppId={{0672EFC4-1E9A-41F7-8AD5-403C64EA899A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=
@@ -24,10 +24,8 @@ PrivilegesRequired=admin
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-OutputDir=release
+OutputDir=..\release
 OutputBaseFilename=MaintiQ-Setup
-SetupIconFile=assets\icons\app.ico
-UninstallIconFile=assets\icons\app.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -36,7 +34,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "release\MaintiQ-Portable\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "..\release\MaintiQ-Portable\MaintiQ\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -45,9 +43,6 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[UninstallDelete]
-Type: filesanddirs; Name: "{app}"
 
 [Code]
 function InitializeSetup(): Boolean;

@@ -160,8 +160,8 @@ Project identity, version, academic-prototype notice, listed limitations, and te
 | Serialisation | joblib | Trained pipeline persistence |
 | Testing | pytest, pytest-qt | Unit, integration, and GUI tests |
 | Code quality | Ruff | Lint and format enforcement |
-| Packaging | PyInstaller | One-file portable Windows executable |
-| Installer | Inno Setup | Installer script (`maintiq-installer.iss`); `MaintiQ-Setup.exe` not yet compiled |
+| Packaging | PyInstaller | One-folder portable Windows executable |
+| Installer | Inno Setup | Installer script (`maintiq-installer.iss`); `release\MaintiQ-Setup.exe` compiled with Inno Setup 6.7.3 and installation-tested |
 
 SHAP and LIME are optional dependencies. The application starts and runs without them; explanations are unavailable when the backend cannot be imported.
 
@@ -390,27 +390,46 @@ Writable runtime data (imported datasets, trained models, registry, logs, settin
 
 ### Windows Smart App Control limitation
 
-Unsigned `MaintiQ.exe` builds can be blocked by Windows Smart App Control on locked-down systems. Distribution requires an EV code-signed executable or installer, or an end-user policy bypass. Signing does not unblock blocked third-party `.pyd` files (for example, the `sklearn.cluster` extensions that SHAP depends on).
+Unsigned `MaintiQ.exe` builds can be blocked by Windows Smart App Control on locked-down systems. Public distribution requires a suitable trusted code-signing certificate (EV certification is not specifically mandatory; signing does not guarantee that every security warning disappears). The final signed distribution should be tested on a clean Windows machine with Smart App Control enabled. End users should not be advised to disable Windows security or bypass application-control policies. Signing does not unblock blocked third-party `.pyd` files (for example, the `sklearn.cluster` extensions that SHAP depends on).
 
 ### Installer
 
-An Inno Setup installer script exists at `packaging\maintiq-installer.iss`. The compiled `MaintiQ-Setup.exe` has **not** been produced yet; run `iscc packaging\maintiq-installer.iss` (with Inno Setup 6+ installed) to generate it. No download link is provided.
+An Inno Setup installer script exists at `packaging\maintiq-installer.iss`. The compiled installer `release\MaintiQ-Setup.exe` has been built with Inno Setup 6.7.3 and installation-tested (install, Start Menu shortcut, optional desktop shortcut, uninstall). No download link is provided; build it locally with `iscc packaging\maintiq-installer.iss` (Inno Setup 6+ required).
 
 ---
 
 ## Testing and Quality Assurance
 
-Verified against the current repository:
+### Automated test results (repository-level)
 
 | Check | Command | Result |
 |-------|---------|--------|
-| Unit + GUI tests | `pytest tests/ -q` | 236 passed |
+| Unit + GUI tests | `pytest tests/ -q` | 239 passed, 1 skipped (.venv-build, Python 3.13.14, pytest 9.2.0) |
 | Lint | `ruff check src/ tests/` | All checks passed |
 | Format check | `ruff format --check src/ tests/` | 97 files formatted |
 
-Clean-machine testing and packaged EXE launch have not been verified. The unsigned EXE and unsigned sklearn native `.pyd` extensions are blocked by Windows Smart App Control / Code Integrity on this machine; see `docs/COMPATIBILITY_TESTS.md` and `docs/WINDOWS_COMPATIBILITY.md` for environment details.
-
 Tests cover configuration, paths, logging, imports, data loading/validation/profiling, preprocessing, feature engineering, model factory/training/registry, evaluation, threshold analysis, comparison, charts, reporting, explainability (SHAP/LIME including unavailable-backend behaviour), prediction, application service, integration flows, security hardening, CLI entry point, and GUI navigation (12 pages) in Qt offscreen mode.
+
+### PyInstaller build verification
+
+| Check | Result |
+|-------|--------|
+| PyInstaller one-folder build | `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` built successfully; `_internal/` present beside executable |
+| Build script | `scripts\build_windows.ps1` completes with exit code 0 |
+| Executable existence | `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` exists and is non-empty |
+
+### Packaged application launch testing
+
+| Check | Result |
+|-------|--------|
+| `MaintiQ.exe` process launch | Launched and ran (process stayed alive; `%LOCALAPPDATA%\MaintiQ` created with datasets, logs, models, registry, reports, settings subdirectories) |
+| Full GUI interaction testing | NOT performed (requires signed EXE on a machine where Smart App Control permits unsigned EXE launch) |
+| Clean-machine Windows testing | NOT performed (no separate clean Windows 10/11 VM or second PC available) |
+| Installer install/uninstall | Tested in a dedicated test directory (install, Start Menu shortcut, optional desktop shortcut, uninstall verified; unrelated user files preserved; `%LOCALAPPDATA%\MaintiQ` preserved) |
+
+Do not claim the application launches successfully on end-user machines unless actually launched and tested there. The unsigned `MaintiQ.exe` is blocked by Windows Smart App Control on this development machine.
+
+Clean-machine testing and packaged EXE launch have not been verified on a separate clean Windows machine. The unsigned EXE and unsigned sklearn native `.pyd` extensions are blocked by Windows Smart App Control / Code Integrity on this machine; see `docs/COMPATIBILITY_TESTS.md` and `docs/WINDOWS_COMPATIBILITY.md` for environment details.
 
 ---
 
@@ -486,13 +505,13 @@ Excluded from this tree: virtual environments (`.venv/`), cache directories (`__
 - SHAP is unavailable when Windows Application Control blocks `sklearn.cluster` native extensions; LIME is used instead where importable. Unavailability is reported explicitly — no explanations are fabricated.
 - Some scikit-learn compiled submodules may be blocked depending on system policy; MaintiQ avoids eager startup imports but cannot load blocked third-party `.pyd` files.
 - Unsigned `MaintiQ.exe` builds are blocked by Windows Smart App Control in this environment.
-- The compiled Inno Setup installer (`MaintiQ-Setup.exe`) has not yet been produced; only the `.iss` script exists.
+- The compiled Inno Setup installer (`release\MaintiQ-Setup.exe`) has been produced with Inno Setup 6.7.3 and installation-tested in a dedicated test directory; only the build script source is in the repository.
 - Gradient Boosting uses a pure-NumPy fallback when the scikit-learn native gradient-boosting extension is unavailable.
 
 ### Potential future improvements
 
-- Signed Windows distribution (EV code-signed executable/installer)
-- Compiled `MaintiQ-Setup.exe` installer
+- Signed Windows distribution (code-signed executable/installer; EV certification is not specifically mandatory)
+- Direct dataset integration (bundled sample dataset)
 - Direct dataset integration (bundled sample dataset)
 - Model monitoring and drift detection
 - Industrial telemetry integration (PLC, SCADA, MES) after suitable validation

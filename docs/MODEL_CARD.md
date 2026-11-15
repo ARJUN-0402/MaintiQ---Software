@@ -31,7 +31,7 @@ The tool is desktop-based, offline after installation, and designed for single-r
 
 ## Training setup
 
-- **Dataset:** AI4I 2020 Predictive Maintenance Dataset (UCI Machine Learning Repository). The dataset is **not bundled** in the repository; the user imports it via CSV (`assets/datasets/` is the sample location, currently empty).
+- **Dataset:** AI4I 2020 Predictive Maintenance Dataset (UCI Machine Learning Repository). The genuine AI4I 2020 CSV is included in the source repository at `assets/datasets/ai4i_2020_predictive_maintenance.csv` as a sample/benchmark file (tracked by Git, licensed CC BY 4.0 by UCI). It is **not bundled in the packaged executable** and is **not auto-loaded** on first launch — the user imports it via CSV using Dataset Explorer. The UCI download link is a fallback when the local source file is absent.
 - **Candidate models:** Logistic Regression, Random Forest, Gradient Boosting, XGBoost. Gradient Boosting uses a preserved pure-NumPy fallback (`GradientBoostingFallbackClassifier`) when the scikit-learn gradient-boosting native extension is unavailable.
 - **Split:** stratified train/test split, random seed 42, untouched final holdout set evaluated after model selection.
 - **Preprocessing:** training-fitted imputation, encoding (`handle_unknown` for unseen `Type` categories), and scaling, bundled inside each model pipeline with joblib.
@@ -55,7 +55,7 @@ No benchmark metrics or training results are claimed without the real AI4I datas
 
 - Academic prototype using benchmark data; results are not certified industrial diagnoses.
 - SHAP/LIME availability depends on the runtime environment (native `.pyd` extensions may be blocked by Windows security policies). The application reports unavailability explicitly and continues without explanations.
-- Unsigned executable builds may be blocked by Windows Smart App Control; distribution requires an EV code-signed executable/installer or end-user bypass of the policy block.
+- Unsigned executable builds may be blocked by Windows Smart App Control; public distribution requires a suitable trusted code-signing certificate (EV certification is not specifically mandatory, and signing does not guarantee that every security warning disappears). The final signed distribution should be tested on a clean Windows machine with Smart App Control enabled. End users should not be advised to disable Windows security or bypass application-control policies.
 - No default trained model is shipped; the user imports data and trains a model before predicting.
 - Thresholds and metrics are analytical choices, not certified industrial settings.
 
@@ -63,5 +63,5 @@ No benchmark metrics or training results are claimed without the real AI4I datas
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.2.0 | 2026-11-14 | Version bump 0.1.0 → 0.2.0 (pyproject.toml, package metadata, installer script). Release documentation updated. No machine-learning functionality changed. Remaining limitations: code-signing certificate pending, Inno Setup installer compilation pending, clean-machine Smart App Control testing pending. |
+| 0.2.0 | 2026-11-14 | Version bump 0.1.0 → 0.2.0 (pyproject.toml, package metadata, installer script). Release documentation updated. No machine-learning functionality changed. Remaining limitations: code-signing certificate pending (unsigned EXE may be blocked by Smart App Control), clean-machine Smart App Control testing pending (no separate VM/PC available). Inno Setup installer compiled and installation-tested in a dedicated test directory. |
 | 0.1.0 | 2026-11-14 | Initial release: dataset ingestion, preprocessing, feature engineering, four-model training with registry, evaluation and threshold analysis, SHAP/LIME explanations, prediction engine, PySide6 desktop GUI, reports/exports, PyInstaller portable build and Inno Setup installer configuration. |

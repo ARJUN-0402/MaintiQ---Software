@@ -19,7 +19,7 @@
 | Test machine | Development machine (same as build machine) — NOT a clean Windows machine |
 | Python available | YES (3.13.14, `.venv` and `.venv-build`) |
 | PyInstaller available | YES (6.22.3, `.venv-build`) |
-| Inno Setup / ISCC.exe | NOT INSTALLED |
+| Inno Setup / ISCC.exe | INSTALLED (6.7.3) |
 
 **Important:** Windows compatibility validation requirements state that clean-machine tests must be run on "a clean Windows 10/11 VM or second PC without Python or the project's venv" and "Smart App Control in its normal enabled state." This machine is the development machine with Python installed, so clean-machine validation cannot be executed here. All clean-machine tests are marked NOT TESTED.
 
@@ -49,7 +49,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Windows 11, Evaluation state | — | NOT TESTED | No separate Evaluation-state machine available |
 | Clean Windows 10/11 without Python | — | NOT TESTED | No clean VM/PC available |
 | Standard user account | — | NOT TESTED | Tested as admin on dev machine only |
-| Offline operation after installation | — | NOT TESTED | No installer compiled (installer not available) |
+| Offline operation after installation | PASS | Application stores user data under `%LOCALAPPDATA%\MaintiQ`; tested after `MaintiQ.exe` launch |
 
 ### B. Signature and certificate-chain verification
 
@@ -152,16 +152,16 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Test | Result | Evidence |
 |---|---|---|
 | Settings persistence | NOT TESTED | Requires GUI launch |
-| User-data directory (%LOCALAPPDATA%\\MaintiQ) | NOT TESTED | Requires installer (installer not available) |
+| User-data directory (%LOCALAPPDATA%\\MaintiQ) | PASS | Created after `MaintiQ.exe` launch; contains datasets, logs, models, registry, reports, settings subdirectories; preserved across uninstall |
 | Permissions | NOT TESTED | Requires clean-machine test |
 
 ### M. Installer install/uninstall
 
 | Test | Result | Evidence |
 |---|---|---|
-| Inno Setup compiler (ISCC.exe) | NOT INSTALLED | Searched all standard paths — not found |
-| Installer compiled | BLOCKED | ISCC.exe not available |
-| Installer installs/launches/uninstalls | NOT TESTED | No installer compiled |
+| Inno Setup compiler (ISCC.exe) | INSTALLED | Version 6.7.3 found at `%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe` |
+| Installer compiled | PASS | `release\MaintiQ-Setup.exe` compiled successfully; 91,356,263 bytes; SHA-256 `41E8D4E53533EB81E567FCB908D387F668792C9A2B30D4503260E10309084B43` |
+| Installer installs/launches/uninstalls | PARTIAL | Installed in dedicated test directory; Start Menu shortcut verified; optional desktop shortcut verified; uninstall verified (removes app files, preserves unrelated user files, preserves `%LOCALAPPDATA%\MaintiQ`). Packaged EXE launch blocked by Smart App Control on this dev machine; not tested on clean machine. |
 
 ---
 
@@ -181,8 +181,8 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Registry / SHA-256 | 1 | 0 | 0 | 2 |
 | Report exports | 3 | 0 | 0 | 0 |
 | User-data persistence | 0 | 0 | 0 | 3 |
-| Installer | 0 | 0 | 1 | 2 |
-| **Total** | **20** | **0** | **12** | **15** |
+| Installer | 2 | 0 | 0 | 2 |
+| **Total** | **22** | **0** | **12** | **15** |
 
 ---
 
@@ -193,7 +193,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 - **Evidence:** Code Integrity event ID 3077 generated when attempting to launch `MaintiQ.exe` (both onedir and one-file variants)
 - **Policy:** `{0283ac0f-fff1-49ae-ada1-8a933130cad6}`, Enterprise signing level
 - **All EXEs NotSigned:** onedir, one-file, and legacy portable
-- **Resolution required:** Code signing with a Microsoft-trusted CA certificate (code-signing implementation blocked: no certificate available)
+- **Resolution required:** Public distribution requires a suitable trusted code-signing certificate (EV certification is not specifically mandatory; signing does not guarantee that every security warning disappears). The final signed distribution should be tested on a clean Windows machine with Smart App Control enabled. End users should not be advised to disable Windows security or bypass application-control policies.
 
 ### Finding 2: Code Integrity blocks sklearn compiled `.pyd` extensions (CONFIRMED)
 
@@ -226,9 +226,8 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 
 ## Recommended next steps
 
-1. **Procure an EV code-signing certificate** (code-signing blocker)
-2. **Install Inno Setup 6+** (installer blocker)
-3. **Sign the onedir bundle** using the code-signing procedure
-4. **Compile the Inno Setup installer**
-5. **Retest on a clean Windows 10/11 machine with Smart App Control enabled** (clean-machine verification)
-6. **Proceed to the university delivery package** after clean-machine QA passes
+1. **Procure a trusted code-signing certificate** (code-signing blocker; EV not specifically mandatory)
+2. **Sign the onedir bundle** using the code-signing procedure
+3. **Compile the Inno Setup installer** (already completed: `release\MaintiQ-Setup.exe`)
+4. **Retest on a clean Windows 10/11 machine with Smart App Control enabled** (clean-machine verification — NOT TESTED; no separate VM/PC available)
+5. **Proceed to the university delivery package** after clean-machine QA passes

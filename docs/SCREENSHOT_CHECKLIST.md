@@ -20,7 +20,9 @@ PySide6 application (`python -m maintiq`, Qt offscreen render of the real
 ## To capture from the built `MaintiQ.exe`
 
 Capture these from the installed/portable build after the Windows Smart App
-Control block is resolved (EV code-signed executable or end-user policy bypass;
+Control block is resolved (code-signed executable; EV certification is not
+specifically mandatory; signing does not guarantee that every security warning
+disappears; do not disable Windows security or bypass application-control policies;
 the unsigned EXE is blocked in this environment):
 
 | # | Screen | Notes |

@@ -7,7 +7,7 @@
 #   .\scripts\build_windows.ps1
 #
 # Outputs:
-#   release\MaintiQ-Portable\MaintiQ.exe        (one-file portable executable)
+#   release\MaintiQ-Portable\MaintiQ\MaintiQ.exe        (one-folder portable executable)
 #   release\MaintiQ-Setup.exe                    (Inno Setup installer, if iscc is installed)
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +51,7 @@ foreach ($dir in @("build", $portableDir)) {
     }
 }
 
-# Build the one-file portable executable.
+# Build the one-folder portable executable.
 Write-Host "`nBuilding MaintiQ.exe with PyInstaller..." -ForegroundColor Cyan
 & $pythonExe -m PyInstaller $spec --noconfirm --distpath $portableDir --workpath (Join-Path $root "build")
 if ($LASTEXITCODE -ne 0) {
@@ -66,14 +66,27 @@ Write-Host "Portable executable built: $exe" -ForegroundColor Green
 
 # Build the Inno Setup installer when the compiler is available.
 Write-Host "`nChecking for Inno Setup compiler (iscc)..." -ForegroundColor Cyan
-$iscc = Get-Command iscc -ErrorAction SilentlyContinue
+$isccPaths = @(
+    (Get-Command iscc -ErrorAction SilentlyContinue).Source,
+    Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe",
+    Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe",
+    Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+)
+$iscc = $null
+foreach ($path in $isccPaths) {
+    if ($path -and (Test-Path $path)) {
+        $iscc = $path
+        Write-Host "Found ISCC at: $path" -ForegroundColor Gray
+        break
+    }
+}
 if ($iscc) {
     Set-Location $root
-    & iscc $issScript
+    & $iscc $issScript
     if ($LASTEXITCODE -eq 0 -and (Test-Path $setupExe)) {
         Write-Host "Installer built: $setupExe" -ForegroundColor Green
     } else {
-        Write-Warning "Inno Setup compilation did not produce $setupExe"
+        Write-Error "Inno Setup compilation failed or did not produce $setupExe"
     }
 } else {
     Write-Host "Inno Setup not found; skipping installer." -ForegroundColor Yellow

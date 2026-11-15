@@ -148,8 +148,12 @@ hosted service is required.
 Build notes observed in this environment:
 
 - Launch of the unsigned `MaintiQ.exe` is blocked by Windows Smart App Control /
-  Application Control. Distribution requires an EV code-signed executable or
-  installer, or an end-user policy bypass.
+  Application Control. Public distribution requires a suitable trusted
+  code-signing certificate (EV certification is not specifically mandatory;
+  signing does not guarantee that every security warning disappears). The final
+  signed distribution should be tested on a clean Windows machine with Smart App
+  Control enabled. End users should not be advised to disable Windows security
+  or bypass application-control policies.
 - Some scikit-learn native extensions (e.g. `sklearn.cluster`) may be blocked by
   Application Control, which makes SHAP unavailable in locked-down Windows
   environments. LIME works where importable. Signing does not unblock blocked

@@ -149,7 +149,7 @@ factory systems, or present model outputs as certified advice.
 
 | Problem | Likely cause / action |
 |---------|----------------------|
-| Application will not launch | Unsigned `.exe` builds may be blocked by Windows Smart App Control. Use an EV code-signed installer or follow your administrator's policy bypass procedure. |
+| Application will not launch | Unsigned `.exe` builds may be blocked by Windows Smart App Control. Public distribution requires a suitable trusted code-signing certificate; EV certification is not specifically mandatory, and signing does not guarantee that every security warning disappears. Follow your administrator's policy guidance — do not disable Windows security or bypass application-control policies. |
 | SHAP explanations unavailable | `sklearn.cluster` native extensions may be blocked by Windows Application Control. LIME explanations still work where `lime` is importable. The app reports this explicitly. |
 | Import rejected | Check required columns, binary target, valid `Type` values (`L`/`M`/`H`), missing values, duplicates, and file size (< 200 MB). |
 | No model available to predict | Import a dataset and train a model first (Model Training). |

@@ -11,8 +11,8 @@
 - No machine-learning functionality was modified; training, prediction, evaluation, and explainability behaviour is unchanged from v0.1.0.
 
 ### Remaining limitations (release engineering)
-- Trusted code-signing certificate pending: no EV/Authenticode certificate available; `MaintiQ.exe` builds remain unsigned and can be blocked by Windows Smart App Control.
-- Inno Setup installer compilation pending: Inno Setup compiler (`ISCC.exe`) is not installed; `MaintiQ-Setup.exe` has not been produced. Installer script exists at `packaging\maintiq-installer.iss`.
+- Trusted code-signing certificate pending: no code-signing certificate available; `MaintiQ.exe` builds remain unsigned and can be blocked by Windows Smart App Control. EV certification is not specifically mandatory; a suitable trusted code-signing certificate is needed for public distribution, and signing does not guarantee that every security warning disappears.
+- Inno Setup installer compiled: `release\MaintiQ-Setup.exe` built with Inno Setup 6.7.3 and installation-tested in a dedicated test directory (install, Start Menu shortcut, optional desktop shortcut, uninstall verified).
 - Clean-machine Smart App Control testing pending: no clean Windows 10/11 VM or second PC available; unsigned-EXE and blocked-`sklearn.cluster` behaviour observed only on the development machine.
 
 ## [0.1.0] — 2026-11-14

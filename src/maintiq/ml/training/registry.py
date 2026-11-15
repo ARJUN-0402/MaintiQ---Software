@@ -19,6 +19,7 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import sys
 import threading
 from typing import Any
 
@@ -105,31 +106,150 @@ def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _store_package_from_path(path: Path) -> str | None:
+    """Extract the Windows Store package family name from a path, or ``None``.
+
+    The path is expected to contain ``\\WindowsApps\\{package_family}\\``.
+    Returns the package family name segment immediately following ``WindowsApps``.
+    """
+    parts = path.parts
+    try:
+        windowsapps_index = parts.index("WindowsApps")
+    except ValueError:
+        return None
+    if windowsapps_index + 1 >= len(parts):
+        return None
+    return parts[windowsapps_index + 1]
+
+
+def _active_store_package_identity() -> str | None:
+    """Return the Windows Store package identity of the active Python, or ``None``.
+
+    The package identity is derived from the running interpreter and its verified
+    base interpreter, never from any candidate path being validated.
+
+    Sources checked in order:
+
+    1. ``sys.executable`` — for direct Windows Store Python execution.
+    2. ``sys._base_executable`` — for virtual environments created from a
+       Windows Store Python interpreter.
+    3. ``sys.base_prefix`` — the base interpreter's installation prefix.
+
+    For a Windows Store Python installation, these paths have the form::
+
+        C:\\Users\\<user>\\AppData\\Local\\Microsoft\\WindowsApps\\{package_family}\\python.exe
+
+    The package family name (e.g.
+    ``PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0``) is the segment
+    immediately following ``WindowsApps``.
+
+    For non-Store Python installations this returns ``None``.
+
+    This value is authoritative: it comes from the running interpreter itself,
+    not from any candidate path that could be controlled by an attacker.
+    """
+    candidates = [Path(sys.executable)]
+
+    base_executable = getattr(sys, "_base_executable", None)
+    if base_executable:
+        candidates.append(Path(base_executable))
+
+    candidates.append(Path(sys.base_prefix))
+
+    seen = set()
+    for candidate in candidates:
+        try:
+            resolved = candidate.resolve()
+        except OSError:
+            continue
+        if str(resolved) in seen:
+            continue
+        seen.add(str(resolved))
+        identity = _store_package_from_path(resolved)
+        if identity is not None:
+            return identity
+
+    return None
+
+
+def _strip_windows_store_virtualization(path: Path) -> Path:
+    """Strip Windows Store Python path virtualization from ``path``.
+
+    Windows Store Python virtualizes paths under ``%LOCALAPPDATA%`` by inserting
+    ``\\Packages\\{package_family}\\LocalCache\\`` between ``Local`` and the
+    actual user-data path. ``Path.resolve()`` may virtualize child paths
+    (e.g. a not-yet-created artefact file) inconsistently from their parent
+    directory (e.g. an existing model directory), causing ``relative_to`` to
+    fail even when the child is genuinely under the parent.
+
+    Fail-closed normalization:
+
+    * If no verified active Store package identity exists
+      (``_active_store_package_identity()`` returns ``None``), the path is
+      returned unchanged. Structural-only normalization is never performed.
+    * The path must start with exactly ``{LOCALAPPDATA}`` followed by
+      ``Packages\\{verified_identity}\\LocalCache\\Local\\``.
+    * Any other path is returned unchanged and left to the normal
+      ``relative_to`` containment check.
+
+    Returns the normalized path, or the input path unchanged if it does not
+    match the verified pattern.
+    """
+    package_identity = _active_store_package_identity()
+    if package_identity is None:
+        # Fail-closed: no verified identity, no normalization.
+        return path
+
+    localappdata = os.environ.get("LOCALAPPDATA")
+    if not localappdata:
+        return path
+
+    localappdata_path = Path(localappdata)
+    parts = path.parts
+
+    # Expected structure:
+    #   {LOCALAPPDATA}\Packages\{verified_identity}\LocalCache\Local\{rest}
+    prefix_len = len(localappdata_path.parts)
+    required_len = (
+        prefix_len + 6
+    )  # LOCALAPPDATA + Packages + pkg + LocalCache + Local + at least 1 more
+    if len(parts) < required_len:
+        return path
+    if Path(*parts[:prefix_len]) != localappdata_path:
+        return path
+    if parts[prefix_len] != "Packages":
+        return path
+    if parts[prefix_len + 1] != package_identity:
+        return path
+    if parts[prefix_len + 2] != "LocalCache":
+        return path
+    if parts[prefix_len + 3] != "Local":
+        return path
+
+    # Everything after {LOCALAPPDATA}\Packages\{identity}\LocalCache\Local is real.
+    return localappdata_path / Path(*parts[prefix_len + 4 :])
+
+
 def _resolve_under_root(model_dir: Path, artifact_path: str | Path) -> tuple[Path, Path]:
     """Resolve ``artifact_path`` and constrain it to ``model_dir``.
 
     Returns ``(resolved_absolute_path, path_relative_to_model_dir)``.
     Raises ``RegistryError`` for traversal, outside-directory, or symlink escapes.
     """
-    root = model_dir.resolve()
+    root = _strip_windows_store_virtualization(model_dir.resolve())
     candidate = Path(artifact_path)
 
     if candidate.is_absolute():
-        resolved = candidate.resolve()
+        resolved = _strip_windows_store_virtualization(candidate.resolve())
     else:
-        resolved = (root / candidate).resolve()
+        resolved = _strip_windows_store_virtualization((root / candidate).resolve())
 
     try:
-        resolved.relative_to(root)
+        relative = resolved.relative_to(root)
     except ValueError as exc:
         raise RegistryError(
             f"Artefact path escapes model directory '{root}': {artifact_path}"
         ) from exc
-
-    try:
-        relative = resolved.relative_to(root)
-    except ValueError as exc:  # pragma: no cover - guarded above
-        raise RegistryError(str(exc)) from exc
 
     return resolved, relative
 

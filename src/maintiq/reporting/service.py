@@ -28,6 +28,7 @@ from maintiq.ml.evaluation.charts import (
     plot_roc_curve,
     plot_threshold_vs_metric,
 )
+from maintiq.ml.training.registry import _strip_windows_store_virtualization
 
 
 def _utc_now_iso() -> str:
@@ -46,8 +47,8 @@ def _sanitize_filename(name: str) -> str:
 
 def _validate_output_path(output_dir: Path, output_path: Path) -> Path:
     """Ensure ``output_path`` resolves within ``output_dir``."""
-    resolved = output_path.resolve()
-    root = output_dir.resolve()
+    resolved = _strip_windows_store_virtualization(output_path.resolve())
+    root = _strip_windows_store_virtualization(output_dir.resolve())
     try:
         resolved.relative_to(root)
     except ValueError as exc:

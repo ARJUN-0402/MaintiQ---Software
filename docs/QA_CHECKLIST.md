@@ -1,8 +1,8 @@
 # MaintiQ QA Checklist
 
 **Version:** 0.2.0  
-**Environment:** Windows, PowerShell 5.1, Python 3.13.14 (`.venv`), scikit-learn 1.9.1, PySide6 6.12.0  
-**Date:** 2026-11-14  
+**Environment:** Windows, PowerShell 5.1, Python 3.13.14 (`.venv` and `.venv-build`), scikit-learn 1.9.1, PySide6 6.12.0
+**Date:** 2026-11-15
 **Scope:** All implemented phases (0–11); phase 12 is documentation and release handover.
 
 > **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
@@ -15,13 +15,16 @@
 |-------|---------|--------|
 | Unit tests | `pytest tests/unit -q` | 203 passed |
 | GUI tests | `pytest tests/gui -q` | 15 passed (Qt offscreen mode) |
-| Combined unit + GUI | `pytest tests/ -q` | 236 passed |
+| Combined unit + GUI | `pytest tests/ -q` | 239 passed (.venv-build, Python 3.13.14, pytest 9.2.0) |
 
-Note: `pytest tests/integration tests/unit -q` previously reported 215 passed with 6 pre-existing
-SHAP-availability failures unrelated to this phase; after the runtime environment changed
-(SHAP 0.54.1 and `sklearn.cluster` now importable in this environment), six tests that had
-hard-coded SHAP-unavailable expectations were updated to match the real environment. The
-SHAP-unavailable behaviour remains covered by monkeypatched tests in
+Note: `pytest tests/ -q` returns 239 passed, 1 skipped in the `.venv-build` environment
+(Python 3.13.14, pytest 9.2.0). The single skip is a symlink test requiring
+developer-mode privileges for symlink creation. Earlier runs on the Windows Store
+Python (`.venv`, pytest 9.1.1) reported 234 passed, 2 failed due to Windows Store
+Python path virtualization affecting `%LOCALAPPDATA%\MaintiQ` model-registry path
+validation; this is fixed in `src/maintiq/ml/training/registry.py` and
+`src/maintiq/reporting/service.py` via `_strip_windows_store_virtualization()`.
+The SHAP-unavailable behaviour remains covered by monkeypatched tests in
 `tests/unit/test_explainability_optional.py`.
 
 ## 2. Quality checks
@@ -58,7 +61,7 @@ SHAP-unavailable behaviour remains covered by monkeypatched tests in
 
 - SHAP unavailable under Windows Application Control when `sklearn.cluster` native extensions are blocked; clear error reported, LIME fallback available.
 - Some scikit-learn compiled submodules may be blocked depending on policy; MaintiQ avoids eager startup imports but cannot load blocked third-party `.pyd` files.
-- Unsigned executable builds blocked by Smart App Control; distribution requires an EV code-signed executable/installer or end-user bypass.
+- Unsigned executable builds blocked by Smart App Control; public distribution requires a suitable trusted code-signing certificate (EV certification is not specifically mandatory; signing does not guarantee that every security warning disappears). End users should not be advised to disable Windows security or bypass application-control policies.
 - The AI4I 2020 dataset is not bundled; the user imports it via CSV. No benchmark metrics are claimed without the real dataset.
 - No default trained model is shipped.
 
@@ -66,6 +69,6 @@ SHAP-unavailable behaviour remains covered by monkeypatched tests in
 
 - [ ] All automated checks pass (unit + GUI, lint, format).
 - [ ] Documentation matches implementation (`docs/`, `README.md`).
-- [ ] Release artefacts exist (`release\MaintiQ-Portable\MaintiQ\MaintiQ.exe`; Inno Setup installer configuration in `packaging\maintiq-installer.iss`).
+- [ ] Release artefacts exist (`release\MaintiQ-Portable\MaintiQ\MaintiQ.exe`; Inno Setup installer `release\MaintiQ-Setup.exe` compiled with Inno Setup 6.7.3 and installation-tested in a dedicated test directory).
 - [ ] Windows build/test status stated truthfully (unsigned EXE launch blocked by Smart App Control in this environment).
 - [ ] Academic prototype limitation displayed in the UI and in generated reports.

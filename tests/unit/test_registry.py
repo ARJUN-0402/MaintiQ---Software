@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path, PurePath
+import sys
 from unittest.mock import patch
 
 import joblib
@@ -13,9 +15,17 @@ import pytest
 from maintiq.core.exceptions import (
     ModelHashMismatchError,
     RegistryError,
+    ReportError,
 )
 from maintiq.ml.training import ModelRegistry, ModelTrainer
-from maintiq.ml.training.registry import SCHEMA_VERSION
+from maintiq.ml.training.registry import (
+    SCHEMA_VERSION,
+    _active_store_package_identity,
+    _resolve_under_root,
+    _store_package_from_path,
+    _strip_windows_store_virtualization,
+)
+from maintiq.reporting.service import _validate_output_path
 
 
 def _write_joblib(path, payload=None):
@@ -294,6 +304,526 @@ def test_outside_directory_absolute_path_rejected(tmp_path):
             metrics={},
             parameters={},
         )
+
+
+def test_valid_artifact_under_model_dir_accepted(tmp_path):
+    registry, model_dir = _make_registry(tmp_path)
+    artifact = model_dir / "valid_model.joblib"
+    _write_joblib(artifact)
+
+    version = registry.register(
+        model_name="logistic_regression",
+        artifact_path=artifact,
+        metrics={"accuracy": 0.9},
+        parameters={"max_iter": 2000},
+        random_seed=42,
+    )
+    assert version == "v1"
+    record = registry.get_version("logistic_regression", "v1")
+    assert record["artifact_path"] == "valid_model.joblib"
+
+
+def test_symlink_escape_rejected(tmp_path, monkeypatch):
+    registry, model_dir = _make_registry(tmp_path)
+    # Create a symlink outside the model directory pointing to a fake artefact.
+    escape_target = tmp_path / "escape" / "escape.joblib"
+    escape_target.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(escape_target)
+    symlink_path = model_dir / "symlink.joblib"
+    try:
+        symlink_path.symlink_to(escape_target)
+    except OSError:
+        pytest.skip("Symlink creation requires developer mode or administrator privileges")
+
+    with pytest.raises(RegistryError):
+        registry.register(
+            model_name="logistic_regression",
+            artifact_path=symlink_path,
+            metrics={},
+            parameters={},
+        )
+
+
+def test_double_traversal_rejected(tmp_path):
+    registry, _model_dir = _make_registry(tmp_path)
+    # Multiple levels of ".." traversal.
+    with pytest.raises(RegistryError):
+        registry.register(
+            model_name="logistic_regression",
+            artifact_path="../../../escape.joblib",
+            metrics={},
+            parameters={},
+        )
+
+
+def test_resolve_under_root_direct(tmp_path):
+    """Direct unit test of _resolve_under_root with valid and invalid paths."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    # Valid: direct child of model_dir.
+    artifact = model_dir / "model.joblib"
+    _write_joblib(artifact)
+    resolved, relative = _resolve_under_root(model_dir, artifact)
+    assert resolved == artifact.resolve()
+    assert str(relative) == str(PurePath("model.joblib"))
+
+    # Valid: relative path under model_dir.
+    _, relative2 = _resolve_under_root(model_dir, "subdir/model.joblib")
+    assert str(relative2) == str(PurePath("subdir/model.joblib"))
+
+    # Invalid: path traversal via "..".
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, "../escape.joblib")
+
+    # Invalid: absolute path outside model_dir.
+    outside = tmp_path / "outside" / "escape.joblib"
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(outside)
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, outside)
+
+
+# --------------------------------------------------------------------------- Windows Store path virtualization security
+
+
+def _active_package_identity() -> str | None:
+    """Return the active Windows Store package identity, or None if not Store Python."""
+    return _active_store_package_identity()
+
+
+def _make_virtualized_path(localappdata: Path, package_identity: str, *segments: str) -> Path:
+    """Build a Windows Store virtualized path: {LOCALAPPDATA}\\Packages\\{pkg}\\LocalCache\\Local\\{rest}."""
+    return localappdata / "Packages" / package_identity / "LocalCache" / "Local" / Path(*segments)
+
+
+def test_active_package_identity_is_non_empty_when_store_python():
+    """When running under Windows Store Python, the package identity is discoverable."""
+    identity = _active_package_identity()
+    if identity is None:
+        pytest.skip("Not running under Windows Store Python")
+    assert isinstance(identity, str)
+    assert len(identity) > 0
+
+
+def test_strip_virtualization_legitimate_windows_store_path(monkeypatch, tmp_path):
+    """A legitimate Windows Store virtualized MaintiQ path is normalized correctly."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    virtualized = _make_virtualized_path(
+        localappdata, package_identity, "MaintiQ", "models", "model.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+
+    expected = localappdata / "MaintiQ" / "models" / "model.joblib"
+    assert stripped == expected
+
+
+def test_strip_virtualization_fake_package_rejected(monkeypatch, tmp_path):
+    """A path with a fake package identity is NOT stripped — mandatory adversarial case."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    # Mandatory adversarial case: fake package mapped into trusted model directory
+    adversarial = _make_virtualized_path(
+        localappdata, "FakePackage", "MaintiQ", "models", "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+
+    # Must NOT be stripped — package identity doesn't match active interpreter
+    assert stripped == adversarial
+
+
+def test_strip_virtualization_unrelated_package_rejected(monkeypatch, tmp_path):
+    """A path with another real-looking but unrelated package identity is not stripped."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    unrelated = "Microsoft.WindowsStore_8wekyb3d8bbwe"
+    if unrelated == package_identity:
+        unrelated = "Some.Other.Package_abc123"
+
+    virtualized = _make_virtualized_path(
+        localappdata, unrelated, "MaintiQ", "models", "model.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+
+    assert stripped == virtualized
+
+
+def test_strip_virtualization_packages_under_maintiq_rejected(monkeypatch, tmp_path):
+    """Packages appearing under MaintiQ (not directly under LOCALAPPDATA) is not stripped."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    adversarial = (
+        localappdata
+        / "MaintiQ"
+        / "Packages"
+        / package_identity
+        / "LocalCache"
+        / "Local"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+
+    assert stripped == adversarial
+
+
+def test_strip_virtualization_extra_segment_before_localcache_rejected(monkeypatch, tmp_path):
+    """Extra segment between package identity and LocalCache is not stripped."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    virtualized = (
+        localappdata
+        / "Packages"
+        / package_identity
+        / "ExtraSegment"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "file.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+
+    assert stripped == virtualized
+
+
+def test_strip_virtualization_missing_local_segment_rejected(monkeypatch, tmp_path):
+    """Missing duplicated Local segment after LocalCache means no stripping."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    virtualized = (
+        localappdata
+        / "Packages"
+        / package_identity
+        / "LocalCache"
+        / "MaintiQ"
+        / "models"
+        / "file.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+
+    assert stripped == virtualized
+
+
+def test_strip_virtualization_nonexistent_adversarial_rejected(monkeypatch, tmp_path):
+    """Structurally valid virtualized path is stripped even if it doesn't exist;
+    containment check still rejects paths outside the trusted root."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    # Path doesn't exist on disk but matches the valid structure — it IS stripped.
+    adversarial = _make_virtualized_path(
+        localappdata, package_identity, "nonexistent", "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+
+    expected = localappdata / "nonexistent" / "outside.joblib"
+    assert stripped == expected
+
+    # But a path outside the trusted model directory is still rejected by _resolve_under_root.
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, adversarial)
+
+
+def test_strip_virtualization_multiple_segments_rejected(monkeypatch, tmp_path):
+    """Multiple virtualization-like segments are not stripped unless first is active package."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    # First segment is a fake package — should not strip anything
+    virtualized = (
+        localappdata
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "Packages"
+        / package_identity
+        / "LocalCache"
+        / "Local"
+        / "file.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+
+    assert stripped == virtualized
+
+
+def test_resolve_under_root_legitimate_virtualized_path(monkeypatch, tmp_path):
+    """Legitimate Windows Store virtualized path inside model directory is accepted."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    model_dir = localappdata / "MaintiQ" / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    artifact = model_dir / "model.joblib"
+    _write_joblib(artifact)
+
+    # Virtualized path: {LOCALAPPDATA}\\Packages\\{pkg}\\LocalCache\\Local\\MaintiQ\\models\\model.joblib
+    virtualized = _make_virtualized_path(
+        localappdata, package_identity, "MaintiQ", "models", "model.joblib"
+    )
+
+    resolved, relative = _resolve_under_root(model_dir, virtualized)
+    assert resolved == artifact.resolve()
+    assert str(relative) == str(PurePath("model.joblib"))
+
+
+def test_resolve_under_root_adversarial_virtualized_path(monkeypatch, tmp_path):
+    """Adversarial virtualized path with fake package escapes model directory — rejected."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    # Build: {LOCALAPPDATA}\\Packages\\FakePackage\\LocalCache\\Local\\models\\outside.joblib
+    # where models is NOT under the trusted model_dir
+    adversarial = _make_virtualized_path(localappdata, "FakePackage", "models", "outside.joblib")
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, adversarial)
+
+
+def test_resolve_under_root_relative_traversal_still_rejected(tmp_path):
+    """Relative ../ traversal remains rejected regardless of virtualization helper."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, "../escape.joblib")
+
+
+def test_resolve_under_root_absolute_outside_still_rejected(tmp_path):
+    """Absolute path outside model directory remains rejected."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    outside = tmp_path / "outside" / "escape.joblib"
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(outside)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, outside)
+
+
+def test_resolve_under_root_sibling_prefix_still_rejected(tmp_path):
+    """Sibling directory with similar prefix remains rejected."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    sibling = tmp_path / "models2" / "escape.joblib"
+    sibling.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(sibling)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, sibling)
+
+
+# --------------------------------------------------------------------------- Fail-closed normalization tests
+
+
+def test_strip_virtualization_no_identity_no_normalization(monkeypatch, tmp_path):
+    """Fail-closed: when no verified identity exists, structural paths are not stripped."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    # Structurally valid virtualized path but no identity → must NOT be stripped.
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+
+def test_strip_virtualization_fake_package_with_identity(monkeypatch, tmp_path):
+    """Fake package identity is rejected even when an identity is known."""
+    monkeypatch.setattr(
+        "maintiq.ml.training.registry._active_store_package_identity", lambda: "Real.Package_abc123"
+    )
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+
+def test_strip_virtualization_incorrect_localcache_position_rejected(monkeypatch, tmp_path):
+    """Packages followed by wrong segment (not LocalCache) is not stripped."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    virtualized = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / package_identity
+        / "WrongSegment"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "file.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+    assert stripped == virtualized
+
+
+def test_strip_virtualization_missing_local_segment_rejected_fail_closed(monkeypatch, tmp_path):
+    """Missing Local segment after LocalCache means no stripping (fail-closed)."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    virtualized = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / package_identity
+        / "LocalCache"
+        / "MaintiQ"
+        / "models"
+        / "file.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(virtualized)
+    assert stripped == virtualized
+
+
+def test_resolve_under_root_nonexistent_adversarial_rejected_fail_closed(monkeypatch, tmp_path):
+    """Nonexistent adversarial virtualized path is rejected when identity unavailable."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    # Structurally valid virtualized path but no identity → not stripped →
+    # containment check rejects because it's outside model_dir.
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "models"
+        / "outside.joblib"
+    )
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, adversarial)
+
+
+# --------------------------------------------------------------------------- Reporting service path validation
+
+
+def test_reporting_output_path_virtualization_rejected(tmp_path):
+    """Reporting output path cannot exploit virtualization normalization."""
+    output_dir = tmp_path / "reports"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Output path outside reports dir — must be rejected
+    outside = tmp_path / "models" / "report.json"
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    outside.write_text("{}")
+
+    with pytest.raises(ReportError):
+        _validate_output_path(output_dir, outside)
+
+
+def test_reporting_output_path_fake_package_virtualized_rejected(monkeypatch, tmp_path):
+    """Reporting output path with fake package virtualization is rejected."""
+    package_identity = _active_package_identity()
+    if package_identity is None:
+        pytest.skip("Not running under Windows Store Python")
+
+    localappdata = tmp_path / "AppData" / "Local"
+    monkeypatch.setenv("LOCALAPPDATA", str(localappdata))
+
+    output_dir = localappdata / "MaintiQ" / "reports"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Virtualized path with fake package: {LOCALAPPDATA}\\Packages\\FakePackage\\LocalCache\\Local\\MaintiQ\\reports\\report.json
+    virtualized_outside = _make_virtualized_path(
+        localappdata, "FakePackage", "MaintiQ", "reports", "report.json"
+    )
+
+    with pytest.raises(ReportError):
+        _validate_output_path(output_dir, virtualized_outside)
 
 
 # --------------------------------------------------------------------------- hash verification
@@ -584,3 +1114,201 @@ def test_delete_model_missing_raises(tmp_path):
     registry, _model_dir = _make_registry(tmp_path)
     with pytest.raises(RegistryError):
         registry.delete_model("absent")
+
+
+# --------------------------------------------------------------------------- Frozen-runtime fail-closed normalization
+
+
+def test_frozen_runtime_no_identity_no_normalization(monkeypatch, tmp_path):
+    """Frozen runtime without verified Store identity performs no normalization."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+
+def test_frozen_runtime_build_provenance_not_normalized(monkeypatch, tmp_path):
+    """Build interpreter from Store Python does not authorize normalization in frozen runtime."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    # Even if the build machine had Store Python, frozen runtime has sys.frozen=True
+    # and no WindowsApps path in sys.executable/_base_executable/sys.base_prefix.
+    # Identity must be None → no normalization.
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+
+def test_frozen_runtime_fake_package_rejected(monkeypatch, tmp_path):
+    """Fake package candidate is unchanged and rejected by containment."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "FakePackage"
+        / "LocalCache"
+        / "Local"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, stripped)
+
+
+def test_frozen_runtime_unrelated_package_rejected(monkeypatch, tmp_path):
+    """Candidate under unrelated package directory is unchanged and rejected."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
+
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    adversarial = (
+        tmp_path
+        / "AppData"
+        / "Local"
+        / "Packages"
+        / "Microsoft.WindowsStore_8wekyb3d8bbwe"
+        / "LocalCache"
+        / "Local"
+        / "MaintiQ"
+        / "models"
+        / "outside.joblib"
+    )
+    stripped = _strip_windows_store_virtualization(adversarial)
+    assert stripped == adversarial
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, stripped)
+
+
+def test_frozen_runtime_normal_path_accepted(tmp_path):
+    """Normal path inside trusted directory is accepted (no identity needed for containment)."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    artifact = model_dir / "model.joblib"
+    _write_joblib(artifact)
+
+    resolved, relative = _resolve_under_root(model_dir, artifact)
+    assert resolved == artifact.resolve()
+    assert str(relative) == str(PurePath("model.joblib"))
+
+
+def test_frozen_runtime_absolute_outside_rejected(tmp_path):
+    """Absolute path outside model directory is rejected."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    outside = tmp_path / "outside" / "escape.joblib"
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(outside)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, outside)
+
+
+def test_frozen_runtime_relative_traversal_rejected(tmp_path):
+    """Relative traversal is rejected."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, "../escape.joblib")
+
+
+def test_frozen_runtime_sibling_prefix_rejected(tmp_path):
+    """Similar-prefix sibling directory is rejected."""
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    sibling = tmp_path / "models2" / "escape.joblib"
+    sibling.parent.mkdir(parents=True, exist_ok=True)
+    _write_joblib(sibling)
+
+    with pytest.raises(RegistryError):
+        _resolve_under_root(model_dir, sibling)
+
+
+def test_frozen_runtime_reporting_output_path_rejected(monkeypatch, tmp_path):
+    """Reporting output path with fake package virtualization is rejected when no identity."""
+    monkeypatch.setattr("maintiq.ml.training.registry._active_store_package_identity", lambda: None)
+
+    output_dir = tmp_path / "reports"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    outside = tmp_path / "models" / "report.json"
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    outside.write_text("{}")
+
+    with pytest.raises(ReportError):
+        _validate_output_path(output_dir, outside)
+
+
+# --------------------------------------------------------------------------- Identity source validation
+
+
+def test_active_store_package_identity_frozen_returns_none():
+    """Frozen application returns None for package identity (no Windows Store provenance)."""
+    if not getattr(sys, "frozen", False):
+        pytest.skip("Not running in frozen context")
+
+    assert _active_store_package_identity() is None
+
+
+def test_identity_source_sys_executable_not_store():
+    """sys.executable of frozen app does not contain WindowsApps."""
+    if not getattr(sys, "frozen", False):
+        pytest.skip("Not running in frozen context")
+
+    assert _store_package_from_path(Path(sys.executable)) is None
+
+
+def test_identity_source_sys_base_executable_not_store():
+    """sys._base_executable of frozen app does not contain WindowsApps."""
+    if not getattr(sys, "frozen", False):
+        pytest.skip("Not running in frozen context")
+
+    base_exe = getattr(sys, "_base_executable", None)
+    if base_exe:
+        assert _store_package_from_path(Path(base_exe)) is None
+
+
+def test_identity_source_sys_base_prefix_not_store():
+    """sys.base_prefix of frozen app does not contain WindowsApps."""
+    if not getattr(sys, "frozen", False):
+        pytest.skip("Not running in frozen context")
+
+    assert _store_package_from_path(Path(sys.base_prefix)) is None
