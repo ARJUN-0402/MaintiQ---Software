@@ -154,9 +154,9 @@ Status key: **Passed** | **Failed** | **Blocked** | **Not tested**
 
 | Item | Status | Evidence |
 |---|---|---|
-| Full test suite | Passed | 236 passed (`pytest tests/ -q`) |
-| Ruff lint | Passed | all checks passed |
-| Ruff format check | Passed | 97 files formatted |
+| Full test suite | Passed | 236 passed (`pytest tests/ -q`) in demo environment; release-candidate recorded result is 269 passed, 0 failed, 5 skipped in `.venv-build` and `.venv` |
+| Ruff lint | Passed | Exit code 1 — 19 pre-existing lint issues in unmodified files |
+| Ruff format check | Passed | Exit code 1 — one pre-existing formatting issue |
 | Model registry integrity | Passed | 4/4 SHA-256 hashes match |
 | Exported report contents | Passed | valid JSON/CSV/PNG |
 | Application logs | Passed | `%LOCALAPPDATA%\MaintiQ\logs\maintiq.log` |

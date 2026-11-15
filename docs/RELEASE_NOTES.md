@@ -5,7 +5,7 @@
 **Release date:** 2026-11-14  
 **Application:** MaintiQ — Industrial Failure Prediction with Explainable Artificial Intelligence  
 **Academic basis:** Uttaranchal University BCA project synopsis (AI4I 2020 Predictive Maintenance Dataset)  
-**Status:** Release — version bump 0.1.0 → 0.2.0; no machine-learning changes.
+**Status:** RELEASE CANDIDATE / RELEASE BLOCKED — version bump 0.1.0 → 0.2.0; no machine-learning changes.
 
 > **MaintiQ is an academic decision-support prototype using the AI4I 2020 benchmark
 > dataset. Predictions and explanations are model outputs, not certified industrial
@@ -27,8 +27,27 @@
 | Artefact | Path | Notes |
 |----------|------|-------|
 | Source package | `src/maintiq/` | Version 0.2.0 |
-| Installer script | `packaging\maintiq-installer.iss` | Inno Setup 6; `MaintiQ-Setup.exe` compiled with Inno Setup 6.7.3 and installation-tested in a dedicated test directory (install, Start Menu shortcut, optional desktop shortcut, uninstall verified). |
+| Portable executable (PyInstaller one-folder) | `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` | Size: 22,845,928 bytes; SHA-256: `76ED1C0CAB1739886BF4AF9B8F7A792C8EB62D9F3DF8EE31D6EB9B69151EF3C4`; Artifact hash verified against the last verified pre-signing reference. |
+| Installer (Inno Setup 6.7.3) | `release\MaintiQ-Setup.exe` | Size: 91,368,808 bytes; SHA-256: `BD66747AA97655B1BD9B37D21D119D980C8CD00F78E531C777F1B57F32F3DF1C`; Artifact hash verified against the last verified pre-signing reference. Installs the contents of the portable application folder; uses a stable AppId and `{autopf}`. |
 | PyInstaller spec | `packaging\maintiq.spec` | Tracked source asset; builds a one-folder distribution |
+
+### Signing status
+
+- The artifacts are **unsigned** (No Authenticode signature or trusted timestamp is present).
+- No trusted production code-signing certificate was available; no production signing operation was performed.
+- The signing status is **BLOCKED**.
+
+### Release decision
+
+**RELEASE BLOCKED.** External validation still pending:
+
+- Clean Windows 10/11 machine or VM testing: NOT TESTED
+- Full interactive GUI workflow: NOT TESTED
+- Complete GUI model-training / prediction / reporting / SHAP-LIME workflows: NOT TESTED
+- Reinstallation on a separate machine: NOT TESTED
+- Trusted Authenticode code signing: BLOCKED
+
+Do not describe this release as fully validated, production-ready, or ready for unrestricted public distribution. No GitHub release has been created and no downloadable release artifacts have been published.
 
 ### Version manifest
 

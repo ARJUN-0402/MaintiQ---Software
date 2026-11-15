@@ -13,26 +13,16 @@
 
 | Suite | Command | Result |
 |-------|---------|--------|
-| Unit tests | `pytest tests/unit -q` | 203 passed |
-| GUI tests | `pytest tests/gui -q` | 15 passed (Qt offscreen mode) |
-| Combined unit + GUI | `pytest tests/ -q` | 239 passed (.venv-build, Python 3.13.14, pytest 9.2.0) |
+| Unit + GUI tests | `pytest tests/ -q` | Latest recorded automated test results: 269 passed, 0 failed, 5 skipped in each of the two recorded environments (`.venv-build` and `.venv`, Python 3.13.14, pytest 9.2.0; Phase 3.6.4). Tests were not rerun during this documentation-only task. |
 
-Note: `pytest tests/ -q` returns 239 passed, 1 skipped in the `.venv-build` environment
-(Python 3.13.14, pytest 9.2.0). The single skip is a symlink test requiring
-developer-mode privileges for symlink creation. Earlier runs on the Windows Store
-Python (`.venv`, pytest 9.1.1) reported 234 passed, 2 failed due to Windows Store
-Python path virtualization affecting `%LOCALAPPDATA%\MaintiQ` model-registry path
-validation; this is fixed in `src/maintiq/ml/training/registry.py` and
-`src/maintiq/reporting/service.py` via `_strip_windows_store_virtualization()`.
-The SHAP-unavailable behaviour remains covered by monkeypatched tests in
-`tests/unit/test_explainability_optional.py`.
+The five skips included a Windows symlink test requiring privileges unavailable in the test environment and four tests requiring execution inside a frozen application context. Describe these as automated test results; do not call them complete GUI, clean-machine, or end-to-end acceptance testing.
 
 ## 2. Quality checks
 
 | Check | Command | Result |
 |-------|---------|--------|
-| Lint | `ruff check src/ tests/` | All checks passed |
-| Format check | `ruff format --check src/ tests/` | 97 files already formatted |
+| Lint | `ruff check src/ tests/` | Exit code 1 — 19 pre-existing lint issues in unmodified files |
+| Format check | `ruff format --check src/ tests/` | Exit code 1 — one pre-existing formatting issue |
 
 ## 3. Workflow checklist
 

@@ -29,13 +29,12 @@
 
 | Artifact | Path | Size | SHA-256 | Authenticode | Signed? |
 |---|---|---|---|---|---|
-| onedir EXE | `release/staging/onedir/MaintiQ/MaintiQ.exe` | 22,843,697 | `369BFB2376EDBE4A3E576E2C6E6AFC734B0C50C85E919917A56736DE292B5DB7` | NotSigned | NO |
-| onefile EXE | `release/staging/onefile/MaintiQ.exe` | 130,753,015 | `0F2ECC08FE71271728CFA7E67E204BF5FAB1F40F2104BE4D93B69CA10EF42013` | NotSigned | NO |
-| legacy portable EXE | `release/MaintiQ-Portable\MaintiQ.exe` | 130,956,988 | `927616252543DE31AB4D6DBE721EDAF8206B4F799D63201BC491990CD9846459` | NotSigned | NO |
-| onedir bundle files | `release/staging/onedir/MaintiQ/` | 2,169 files | manifest: `release/staging/onedir_manifest.csv` | — | — |
-| onefile manifest | `release/staging/onefile_manifest.csv` | 1 file | — | — | — |
+| onedir portable EXE | `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` | 22,845,928 | `76ED1C0CAB1739886BF4AF9B8F7A792C8EB62D9F3DF8EE31D6EB9B69151EF3C4` | NotSigned | NO |
+| Inno Setup installer | `release\MaintiQ-Setup.exe` | 91,368,808 | `BD66747AA97655B1BD9B37D21D119D980C8CD00F78E531C777F1B57F32F3DF1C` | NotSigned | NO |
 
-All three EXEs are **NotSigned** — this is the root cause of the Smart App Control block.
+Both artifacts are **NotSigned** — this is the root cause of the Smart App Control block.
+
+Note: Legacy staging paths (`release/staging/onedir/...`, `release/staging/onefile/...`) and the legacy portable path (`release\MaintiQ-Portable\MaintiQ.exe`) no longer exist. The verified one-folder portable build is at `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` alongside the PyInstaller `_internal/` directory.
 
 ---
 
@@ -55,9 +54,8 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 
 | Test | Artifact | Result | Evidence |
 |---|---|---|---|
-| Authenticode signature | onedir EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
-| Authenticode signature | onefile EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
-| Authenticode signature | legacy portable EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
+| Authenticode signature | onedir portable EXE | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
+| Authenticode signature | Inno Setup installer | NotSigned | `Get-AuthenticodeSignature`: Status = NotSigned |
 | Certificate chain verification | — | BLOCKED | No code-signing certificate available |
 | RFC 3161 timestamping | — | BLOCKED | No signing tool (signtool) available |
 
@@ -160,7 +158,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Test | Result | Evidence |
 |---|---|---|
 | Inno Setup compiler (ISCC.exe) | INSTALLED | Version 6.7.3 found at `%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe` |
-| Installer compiled | PASS | `release\MaintiQ-Setup.exe` compiled successfully; 91,356,263 bytes; SHA-256 `41E8D4E53533EB81E567FCB908D387F668792C9A2B30D4503260E10309084B43` |
+| Installer compiled | PASS | `release\MaintiQ-Setup.exe` compiled with Inno Setup 6.7.3; 91,368,808 bytes; SHA-256 `BD66747AA97655B1BD9B37D21D119D980C8CD00F78E531C777F1B57F32F3DF1C` |
 | Installer installs/launches/uninstalls | PARTIAL | Installed in dedicated test directory; Start Menu shortcut verified; optional desktop shortcut verified; uninstall verified (removes app files, preserves unrelated user files, preserves `%LOCALAPPDATA%\MaintiQ`). Packaged EXE launch blocked by Smart App Control on this dev machine; not tested on clean machine. |
 
 ---
@@ -170,7 +168,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Category | PASS | FAIL | BLOCKED | NOT TESTED |
 |---|---|---|---|---|
 | Platform compatibility | 0 | 0 | 1 (Smart App Control On) | 4 |
-| Signature / certificate | 0 | 0 | 3 | 1 |
+| Signature / certificate | 0 | 0 | 2 | 1 |
 | Launch / GUI (12 pages) | 2 | 0 | 2 | 1 |
 | Dataset import | 4 | 0 | 0 | 0 |
 | EDA / charts | 2 | 0 | 0 | 1 |
@@ -182,7 +180,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 | Report exports | 3 | 0 | 0 | 0 |
 | User-data persistence | 0 | 0 | 0 | 3 |
 | Installer | 2 | 0 | 0 | 2 |
-| **Total** | **22** | **0** | **12** | **15** |
+| **Total** | **22** | **0** | **10** | **15** |
 
 ---
 
@@ -192,7 +190,7 @@ All three EXEs are **NotSigned** — this is the root cause of the Smart App Con
 
 - **Evidence:** Code Integrity event ID 3077 generated when attempting to launch `MaintiQ.exe` (both onedir and one-file variants)
 - **Policy:** `{0283ac0f-fff1-49ae-ada1-8a933130cad6}`, Enterprise signing level
-- **All EXEs NotSigned:** onedir, one-file, and legacy portable
+- **All artifacts NotSigned:** onedir portable EXE and Inno Setup installer
 - **Resolution required:** Public distribution requires a suitable trusted code-signing certificate (EV certification is not specifically mandatory; signing does not guarantee that every security warning disappears). The final signed distribution should be tested on a clean Windows machine with Smart App Control enabled. End users should not be advised to disable Windows security or bypass application-control policies.
 
 ### Finding 2: Code Integrity blocks sklearn compiled `.pyd` extensions (CONFIRMED)

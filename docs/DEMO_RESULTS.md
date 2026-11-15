@@ -148,9 +148,9 @@ was fabricated.
 
 | Check | Result |
 |---|---|
-| Full test suite (`pytest tests/ -q`) | 236 passed |
-| Ruff lint (`ruff check src/ tests/`) | All checks passed |
-| Ruff format (`ruff format --check`) | 97 files formatted |
+| Full test suite (`pytest tests/ -q`) | 236 passed in demo environment; release-candidate recorded result is 269 passed, 0 failed, 5 skipped in `.venv-build` and `.venv` |
+| Ruff lint (`ruff check src/ tests/`) | Exit code 1 — 19 pre-existing lint issues in unmodified files |
+| Ruff format (`ruff format --check`) | Exit code 1 — one pre-existing formatting issue |
 | Model registry integrity | 4 models / 4 records; all SHA-256 hashes match |
 | Exported reports | All files openable, valid formats |
 | Application logs | `%LOCALAPPDATA%\MaintiQ\logs\maintiq.log` present |

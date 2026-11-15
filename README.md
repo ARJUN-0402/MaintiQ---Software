@@ -404,9 +404,9 @@ An Inno Setup installer script exists at `packaging\maintiq-installer.iss`. The 
 
 | Check | Command | Result |
 |-------|---------|--------|
-| Unit + GUI tests | `pytest tests/ -q` | 239 passed, 1 skipped (.venv-build, Python 3.13.14, pytest 9.2.0) |
-| Lint | `ruff check src/ tests/` | All checks passed |
-| Format check | `ruff format --check src/ tests/` | 97 files formatted |
+| Unit + GUI tests | `pytest tests/ -q` | Latest recorded automated test results: 269 passed, 0 failed, 5 skipped in each of the two recorded environments (`.venv-build` and `.venv`, Python 3.13.14, pytest 9.2.0; Phase 3.6.4). Tests were not rerun during this documentation-only task. |
+| Lint | `ruff check src/ tests/` | Exit code 1 — 19 pre-existing lint issues in unmodified files |
+| Format check | `ruff format --check src/ tests/` | Exit code 1 — one pre-existing formatting issue |
 
 Tests cover configuration, paths, logging, imports, data loading/validation/profiling, preprocessing, feature engineering, model factory/training/registry, evaluation, threshold analysis, comparison, charts, reporting, explainability (SHAP/LIME including unavailable-backend behaviour), prediction, application service, integration flows, security hardening, CLI entry point, and GUI navigation (12 pages) in Qt offscreen mode.
 
@@ -422,9 +422,10 @@ Tests cover configuration, paths, logging, imports, data loading/validation/prof
 
 | Check | Result |
 |-------|--------|
-| `MaintiQ.exe` process launch | Launched and ran (process stayed alive; `%LOCALAPPDATA%\MaintiQ` created with datasets, logs, models, registry, reports, settings subdirectories) |
-| Full GUI interaction testing | NOT performed (requires signed EXE on a machine where Smart App Control permits unsigned EXE launch) |
-| Clean-machine Windows testing | NOT performed (no separate clean Windows 10/11 VM or second PC available) |
+| Frozen-process startup (path-containment checks) | VERIFIED WITH LIMITATIONS — `release\MaintiQ-Portable\MaintiQ\MaintiQ.exe` exists and starts a frozen process; `%LOCALAPPDATA%\MaintiQ` created with datasets, logs, models, registry, reports, settings subdirectories. Interactive GUI launch is separately blocked by Smart App Control on this machine. |
+| Interactive GUI launch (Smart App Control environment) | BLOCKED — unsigned `MaintiQ.exe` blocked by Windows Smart App Control (WinError 4551, Code Integrity event 3077). Other locked-down Windows environments may also restrict unsigned executables. |
+| Full interactive GUI workflow | NOT TESTED |
+| Clean-machine Windows testing | NOT TESTED (no separate clean Windows 10/11 VM or second PC available) |
 | Installer install/uninstall | Tested in a dedicated test directory (install, Start Menu shortcut, optional desktop shortcut, uninstall verified; unrelated user files preserved; `%LOCALAPPDATA%\MaintiQ` preserved) |
 
 Do not claim the application launches successfully on end-user machines unless actually launched and tested there. The unsigned `MaintiQ.exe` is blocked by Windows Smart App Control on this development machine.
